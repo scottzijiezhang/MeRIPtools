@@ -1,0 +1,15 @@
+Package: MeRIPtools
+Type: Package
+Title: Analyze m6A seq data
+Version: 0.0.1
+Author: 
+Maintainer: The package maintainer <scottzjzhang@uchicago.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Depends: GenomicFeatures, Rsamtools, ggplot2, doParallel, foreach,grid,rtracklayer,GenomicAlignments,reshape2,Rcpp,RcppArmadillo
+RoxygenNote: 6.0.1
+LinkingTo: Rcpp, RcppArmadillo
+Imports: Guitar, stringr,vcfR,gamlss, broom, DESeq2
