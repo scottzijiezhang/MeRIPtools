@@ -23,7 +23,10 @@ plotGeneCoverage <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, geneNam
   rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
 
   if(adjustExprLevel){
+    
+    ## Compute size factor for adjustment considering only coverage on the exons
     cov.size <- colSums(INPUT.cov)/mean(colSums(INPUT.cov))
+    
     INPUT.cov <- t(  t(INPUT.cov)/cov.size )
     IP.cov <- t( t(IP.cov)/cov.size )
   }

@@ -192,9 +192,7 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
     
   }else if( MeRIPdata@jointPeak_threshold == 0  |  MeRIPdata@jointPeak_threshold != joint_threshold ){
     cat(paste0("Reporting joint peak at joint threshold "), joint_threshold ,"\n")
-    if(MeRIPdata@jointPeak_threshold != joint_threshold & MeRIPdata@jointPeak_threshold >0){
-      cat(paste0("joint threshold was previous set at ",MeRIPdata@jointPeak_threshold,".\n"))
-    }
+    
     ## Get joint peak
     geneBins <- geneBins(MeRIPdata)
     ## set logic vector for joint peak
@@ -256,6 +254,16 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
     data.out@jointPeaks <- merged.report
     data.out@jointPeak_id_pairs <- peak_id_pairs
     data.out@jointPeak_threshold <- joint_threshold
+    ## reset the data associated with jointPeaks because new joint peaks has been changed.
+    if(MeRIPdata@jointPeak_threshold != joint_threshold & MeRIPdata@jointPeak_threshold >0){
+      cat(paste0("joint threshold was previous set at ",MeRIPdata@jointPeak_threshold,".\nWill remove joint-peak read count,test statistics etc. to avoid inconsistency with new joint peaks. Please re-fetch joint peak counts!\n"))
+      data.out@jointPeak_ip <-  new("matrix")
+      data.out@jointPeak_input <-  new("matrix")
+      data.out@norm.jointPeak_ip <-  new("matrix")
+      data.out@jointPeak_adjExpr <-  new("matrix")
+      data.out@test.est <-  new("matrix")
+      data.out@test.method <-  "none"
+    }
     ##Filter out duplicated peaks due to duplicated gene names
     data.out <- filter(data.out, !duplicated( paste(data.out@jointPeaks$chr, data.out@jointPeaks$start, data.out@jointPeaks$end,data.out@jointPeaks$strand, sep = ":") ) )
     return( data.out )
@@ -356,13 +364,12 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
 ########################################################################################################################################################
 
 
-#' @title JointPeakCount
+#' @title jointPeakCount
 #' @description Extract read count of joint peaks for each sample and store the read counts in the MeRIP.Peak object. 
 #' @param MeRIPdata The data list as output of callPeakFisher()
-#' @param joint_threshold Require a bin to be called as a peak in joint_threshold number of samples to be a joint peak.
 #' @return Returns the MeRIPdata with joint peak read count for input and IP stored.
 #' @export
-JointPeakCount <- function(MeRIPdata ){
+jointPeakCount <- function(MeRIPdata ){
   if( is( MeRIPdata,"MeRIP.Peak") ){
     if( nrow(MeRIPdata@jointPeak_id_pairs) >0 & MeRIPdata@jointPeak_threshold> 0){}else{stop("Please report JointPeak first!")}
   }else{
@@ -1316,7 +1323,15 @@ setMethod("select", signature("MeRIP.Peak"),function(object , samples ){
   newOb@jointPeak_input <- if(nrow(object@jointPeak_input) > 1 ){object@jointPeak_ip[,id]}else{object@jointPeak_input}
   newOb@norm.jointPeak_ip <- if(nrow(object@norm.jointPeak_ip) > 1 ){object@norm.jointPeak_ip[,id]}else{object@norm.jointPeak_ip}
   newOb@sizeFactor <- if(nrow(object@sizeFactor) > 1 ){object@sizeFactor[id,]}else{object@sizeFactor}
-  newOb@variate <- if(nrow(object@variate) > 1 ){object@variate[id,]}else{object@variate}
+  newOb@variate <- if(nrow(object@variate) > 1 ){ if(ncol(object@variate)>1){
+    object@variate[id,]
+  }else{
+    newVar <- data.frame(object@variate[id,])
+    colnames(newVar) <- colnames(object@variate)
+    newVar
+  } }else{
+    object@variate
+    }
   newOb@jointPeak_adjExpr <- if(nrow(object@jointPeak_adjExpr) > 1 ){object@jointPeak_adjExpr[,id]}else{object@jointPeak_adjExpr}
   if(nrow(object@test.est) > 1 ){cat("Inferential test is not inherited because test result changes when samples are altered!\nPlease re-do test.\n")}
   return(newOb)

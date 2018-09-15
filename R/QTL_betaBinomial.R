@@ -31,7 +31,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
   ##filter out peaks with OR < 1
   enrichFlag <- apply( t( t(extractIP(MeRIPdata))/T1 )/ t( t( extractInput(MeRIPdata) )/T0 ),1,function(x){sum(x>1)> MeRIPdata@jointPeak_threshold})
   MeRIPdata <-  filter(MeRIPdata, enrichFlag )
-  cat(paste0("Peaks with odd ratio < 1 in more than ",MeRIPdata@jointPeak_threshold," samples have been removed.\n",nrow(jointPeak(MeRIPdata))," peaks remaining for QTL mapping.\n"))
+  cat(paste0("Peaks with odd ratio > 1 in more than ",MeRIPdata@jointPeak_threshold," samples will be retained.\n",nrow(jointPeak(MeRIPdata))," peaks remaining for QTL mapping.\n"))
   ## estimate IP efficiency
   OR <- t( apply(extractIP(MeRIPdata),1,.noZero)/T1 )/ t( t( extractInput(MeRIPdata) )/T0 )
   colnames(OR) <- MeRIPdata@samplenames
@@ -131,17 +131,21 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
 
     ## Test association if there is SNP available for this peak
     if(length(testRange)==1){
-      ## read genotype
-      system(paste0("zcat ",vcf_file," | awk 'NR==1 {print $0} (/^#CHROM/){print $0}(!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip > ~/tmp",i,".vcf.gz"))
-      geno.vcf <-try(  read.vcfR( file =paste0("~/tmp",i,".vcf.gz"), verbose = F ) , silent = T)
-      ####################################################################
-      ### This is to handle a wired error in the read.vcfR function.
-      if(class(geno.vcf) == "try-error"){
-        system(paste0("zcat ",vcf_file," | awk '/^#/ {print $0} (!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip > ~/tmp",i,".vcf.gz"))
-        geno.vcf <-read.vcfR( file =paste0("~/tmp",i,".vcf.gz"), verbose = F )
-      }
-      ####################################################################
-      file.remove(paste0("~/tmp",i,".vcf.gz"))
+      
+      ## Use unix command line to accesss the genotype from vcf file. This is for fast data access.
+      tmpVcf <- tempfile(fileext = ".vcf.gz")
+      system(paste0("zcat ",vcf_file," | awk 'NR==1 {print $0} (/^#CHROM/){print $0}(!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip > ",tmpVcf))
+      geno.vcf <-try(  read.vcfR( file =tmpVcf, verbose = F ) , silent = T)
+      ############################################################################################################################################################
+      ### This is to handle a wired error in the read.vcfR function. #############################################################################################
+      if(class(geno.vcf) == "try-error"){                                                                                                                       ##
+        system(paste0("zcat ",vcf_file," | awk '/^#/ {print $0} (!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip >",tmpVcf))  ##
+        geno.vcf <-read.vcfR( file =tmpVcf, verbose = F )                                                                                                       ##
+      }                                                                                                                                                         ##
+      ############################################################################################################################################################
+      unlink(tmpVcf) # remove the temp file to free space.
+      
+      
       ## filter biallelic snps
       geno.vcf <- geno.vcf[is.biallelic(geno.vcf),]
 
@@ -155,6 +159,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       geno.vcf <- geno.vcf[MAF,]
       if(AdjustGC){Fj <- FIj[i,]}
       
+      ## Test QTLs for peak.j
       tmp_est <- as.data.frame(matrix(nrow = nrow(geno),ncol = 4),row.names = rownames(geno) )
       for( ii in 1:nrow(geno) ){
         if(AdjustGC){fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe, Fj , G = geno[ii,])}else{fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe , G = geno[ii,])}
@@ -198,7 +203,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
   rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
   endTime <- Sys.time()
   cat(paste("Time used to test association: ",round(difftime(endTime, startTime, units = "mins"),digits = 1)," mins. \n"))
-
+  cat(paste0(nrow(testResult)," SNP-peak pair tested.\n"))
   return(testResult)
 }
 

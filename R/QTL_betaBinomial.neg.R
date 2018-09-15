@@ -132,17 +132,20 @@ swapChr22.QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsa
 
     ## Test association if there is SNP available for this peak
     if(length(testRange)==1){
-      ## read genotype
-      system(paste0("zcat ",vcf_file," | awk 'NR==1 {print $0} (/^#CHROM/){print $0}(!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip > ~/tmp",i,".vcf.gz"))
-      geno.vcf <-try(  read.vcfR( file =paste0("~/tmp",i,".vcf.gz"), verbose = F ) , silent = T)
+      
+      ## Use unix command line to accesss the genotype from vcf file. This is for fast data access.
+      tmpVcf <- tempfile(fileext = ".vcf.gz")
+      system(paste0("zcat ",vcf_file," | awk 'NR==1 {print $0} (/^#CHROM/){print $0}(!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip > ",tmpVcf))
+      geno.vcf <-try(  read.vcfR( file =tmpVcf, verbose = F ) , silent = T)
       ####################################################################
       ### This is to handle a wired error in the read.vcfR function.
       if(class(geno.vcf) == "try-error"){
-        system(paste0("zcat ",vcf_file," | awk '/^#/ {print $0} (!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip > ~/tmp",i,".vcf.gz"))
-        geno.vcf <-read.vcfR( file =paste0("~/tmp",i,".vcf.gz"), verbose = F )
+        system(paste0("zcat ",vcf_file," | awk '/^#/ {print $0} (!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip >",tmpVcf))
+        geno.vcf <-read.vcfR( file =tmpVcf, verbose = F )
       }
       ####################################################################
-      file.remove(paste0("~/tmp",i,".vcf.gz"))
+      unlink(tmpVcf) # remove the temp file to free space.
+      
       ## filter biallelic snps
       geno.vcf <- geno.vcf[is.biallelic(geno.vcf),]
 
