@@ -173,7 +173,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
           est <- tidy(fit)
           tmp_est[ii,] <- data.frame(beta =  est[est$term == "G","estimate"],
                                      std.err = est[est$term == "G","std.error"],
-                                     t-stat = est[est$term == "G","statistic"],
+                                     t.stat = est[est$term == "G","statistic"],
                                      pvalue = est[est$term == "G","p.value"], 
                                      theta = 1/exp(est[est$parameter == "sigma","estimate"]),
                                      p.theta = est[est$parameter == "sigma","p.value"] ) 
