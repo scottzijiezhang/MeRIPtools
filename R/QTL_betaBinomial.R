@@ -171,9 +171,11 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
         fit <- try( gamlss( design ,data = fit_data , family = BB(mu.link = "logit")) )
         if(class(fit)[1]!= "try-error"){
           est <- tidy(fit)
-          tmp_est[ii,] <- data.frame(beta =  est[est$term == "G","estimate"], 
-                                     theta = 1/exp(est[est$parameter == "sigma","estimate"]), 
+          tmp_est[ii,] <- data.frame(beta =  est[est$term == "G","estimate"],
+                                     std.err = est[est$term == "G","std.error"],
+                                     t.stat = est[est$term == "G","statistic"],
                                      pvalue = est[est$term == "G","p.value"], 
+                                     theta = 1/exp(est[est$parameter == "sigma","estimate"]),
                                      p.theta = est[est$parameter == "sigma","p.value"] ) 
         }else{
             tmp_est[ii,] <- data.frame(beta = NA, theta = NA, pvalue =NA, p.theta = NA ) 
