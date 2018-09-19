@@ -1,7 +1,7 @@
 Package: MeRIPtools
 Type: Package
 Title: Analyze m6A seq data
-Version: 0.0.1
+Version: 0.0.2
 Author: 
 Maintainer: The package maintainer <scottzjzhang@uchicago.edu>
 Description: More about what it does (maybe more than one line)
