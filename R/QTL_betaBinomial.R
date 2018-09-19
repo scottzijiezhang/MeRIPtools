@@ -173,16 +173,15 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
           est <- tidy(fit)
           tmp_est[ii,] <- data.frame(beta =  est[est$term == "G","estimate"],
                                      std.err = est[est$term == "G","std.error"],
-                                     t.stat = est[est$term == "G","statistic"],
                                      pvalue = est[est$term == "G","p.value"], 
                                      theta = 1/exp(est[est$parameter == "sigma","estimate"]),
                                      p.theta = est[est$parameter == "sigma","p.value"] ) 
         }else{
-            tmp_est[ii,] <- data.frame(beta = NA, theta = NA, pvalue =NA, p.theta = NA ) 
+            tmp_est[ii,] <- data.frame(beta = NA, std.err = NA,  pvalue =NA,theta = NA, p.theta = NA ) 
           }
         
       }
-      colnames(tmp_est) <- c("beta","theta","pvalue","p.theta")
+      colnames(tmp_est) <- c("beta","std.err","pvalue","theta","p.theta")
         
       ## calculate distance with respect to transcript(gene) strand
       distance <- if(as.character(strand(peak_bed.gr[i])) == "+"){
