@@ -187,8 +187,8 @@ QTL_BetaBin_permute <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapi
       permu_est.all <- as.data.frame(matrix(nrow = nrow(geno),ncol = 3*Nround),row.names = rownames(geno) )
       for( N in 1:Nround){
         
-        Y0rsh <-  Y0[i,sample(1:60,size = 60,replace = F)]
-        Y1rsh <-  Y1[i,sample(1:60,size = 60,replace = F)]
+        Y0rsh <-  Y0[i,sample(1:length(MeRIPdata@samplenames),size = length(MeRIPdata@samplenames),replace = F)]
+        Y1rsh <-  Y1[i,sample(1:length(MeRIPdata@samplenames),size = length(MeRIPdata@samplenames),replace = F)]
         
         permu_est <- as.data.frame(matrix(nrow = nrow(geno),ncol = 3),row.names = rownames(geno) )
         for( ii in 1:nrow(geno) ){
@@ -210,8 +210,9 @@ QTL_BetaBin_permute <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapi
           }
           
         }
-        colnames(permu_est) <- paste0(c("beta.","std.err.","p."),N)
+         
         permu_est.all[,(1:3)+3*(N-1)] <- permu_est
+        colnames(permu_est.all)[(1:3)+3*(N-1)]<- paste0(c("beta.","std.err.","p."),N)
       }
       
       ## calculate distance with respect to transcript(gene) strand

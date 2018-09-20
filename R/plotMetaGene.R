@@ -48,7 +48,7 @@ plotMetaGene <- function(peak,gtf){
     annotate("text", x = 0.5, y = -0.2, label = "lncRNA")+
     annotate("rect", xmin = 0, xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
     theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),legend.position = "none")
+                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(face = "bold",hjust = 0.5))
 
   # normalization by length of components in mRNA
   # calculate relative length of each components
@@ -97,7 +97,7 @@ plotMetaGene <- function(peak,gtf){
     annotate("rect", xmin = x[2], xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
     annotate("rect", xmin = x[1], xmax = x[2], ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black")+
     theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),legend.position = "none")
+                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),legend.position = "none",legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
 
   .multiplot(p1, p2, cols=2)
 

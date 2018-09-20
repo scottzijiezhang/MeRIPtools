@@ -1,4 +1,4 @@
-#' @title QTL_BetaBin
+#' @title swapChr22.QTL_BetaBin.permute
 #' @param MeRIPdata The MeRIP.Peak object
 #' @param vcf_file The vcf file for genotype. The chromosome position must be sorted!!
 #' @param BSgenome The BSgenome object. This needs to match the genome version of the gtf files. 
@@ -6,8 +6,6 @@
 #' @param Chromosome The chromsome to run QTL test.
 #' @param Range The position range on a chromosome to test.
 #' @param Covariates The matrix for covariates to be included in the test.
-#' @param AdjustGC Logic. Chose whether explicitly adjust GC bias.
-#' @param AdjIPeffi Logic. Chose whether explicitly adjust overall IP efficiency
 #' @import stringr
 #' @import vcfR
 #' @import BSgenome
@@ -15,7 +13,7 @@
 #' @import gamlss.dist
 #' @import broom
 #' @export
-QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,testWindow = 100000, Chromosome, Range = NULL, Covariates = NULL, AdjustGC = TRUE, AdjIPeffi = TRUE , PCsToInclude = 0 , thread = 1 ){
+swapChr22.QTL_BetaBin.permute <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,testWindow = 100000, Chromosome, Range = NULL, Covariates = NULL, AdjustGC = TRUE, AdjIPeffi = TRUE , PCsToInclude = 0 , thread = 1, Nround = 1 ){
    
   ##check input
   if( !is(MeRIPdata, "MeRIP.Peak") ){
@@ -33,7 +31,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
   ##filter out peaks with OR < 1
   enrichFlag <- apply( t( t(extractIP(MeRIPdata))/T1 )/ t( t( extractInput(MeRIPdata) )/T0 ),1,function(x){sum(x>1)> MeRIPdata@jointPeak_threshold})
   MeRIPdata <-  filter(MeRIPdata, enrichFlag )
-  cat(paste0("Peaks with odd ratio > 1 in more than ",MeRIPdata@jointPeak_threshold," samples will be retained.\n",nrow(jointPeak(MeRIPdata))," peaks remaining for QTL mapping.\n"))
+  cat(paste0("Peaks with odd ratio < 1 in more than ",MeRIPdata@jointPeak_threshold," samples have been removed.\n",nrow(jointPeak(MeRIPdata))," peaks remaining for QTL mapping.\n"))
   ## estimate IP efficiency
   OR <- t( apply(extractIP(MeRIPdata),1,.noZero)/T1 )/ t( t( extractInput(MeRIPdata) )/T0 )
   colnames(OR) <- MeRIPdata@samplenames
@@ -85,7 +83,8 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
     stop("The number of PCs needs to be no larger than the sample size!")
   }
  
-  
+  MeRIPdata@jointPeaks$chr <- gsub("chr22","chr222",MeRIPdata@jointPeaks$chr )
+  MeRIPdata@jointPeaks$chr <- gsub("chr21","chr22",MeRIPdata@jointPeaks$chr )
   ## set ranges on the chromosome that can be tested
   con <- pipe(paste0("zcat ",vcf_file," | awk '!/^#/ {print $2}' | tail -n1"))
   vcfRange <- c( read.table(gzfile(vcf_file), nrows = 1)[,2] ,
@@ -138,15 +137,14 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       tmpVcf <- tempfile(fileext = ".vcf.gz")
       system(paste0("zcat ",vcf_file," | awk 'NR==1 {print $0} (/^#CHROM/){print $0}(!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip > ",tmpVcf))
       geno.vcf <-try(  read.vcfR( file =tmpVcf, verbose = F ) , silent = T)
-      ############################################################################################################################################################
-      ### This is to handle a wired error in the read.vcfR function. #############################################################################################
-      if(class(geno.vcf) == "try-error"){                                                                                                                       ##
-        system(paste0("zcat ",vcf_file," | awk '/^#/ {print $0} (!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip >",tmpVcf))  ##
-        geno.vcf <-read.vcfR( file =tmpVcf, verbose = F )                                                                                                       ##
-      }                                                                                                                                                         ##
-      ############################################################################################################################################################
+      ####################################################################
+      ### This is to handle a wired error in the read.vcfR function.
+      if(class(geno.vcf) == "try-error"){
+        system(paste0("zcat ",vcf_file," | awk '/^#/ {print $0} (!/^#/ && $2 > ",start(testRange)," && $2 < ",end(testRange)," ) {print $0}'| gzip >",tmpVcf))
+        geno.vcf <-read.vcfR( file =tmpVcf, verbose = F )
+      }
+      ####################################################################
       unlink(tmpVcf) # remove the temp file to free space.
-      
       
       ## filter biallelic snps
       geno.vcf <- geno.vcf[is.biallelic(geno.vcf),]
@@ -155,13 +153,14 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       tmp_geno <- extract.gt(geno.vcf, element = 'GT' )
       geno <- t( apply( tmp_geno ,1, .genoDosage ) )
       colnames(geno) <- colnames(tmp_geno)
-      ## filter out any genotype that has MAF<0.05
+      ## filter out any genotype that has M(major)AF<0.05
       MAF <- apply(geno,1,function(x) !any(table(x)>0.95*ncol(geno)) )
       geno <- geno[MAF,] 
-      geno.vcf <- geno.vcf[MAF,]
+      geno.vcf <- geno.vcf[MAF,] 
+      
       if(AdjustGC){Fj <- FIj[i,]}
       
-      ## Test QTLs for peak.j
+      
       tmp_est <- as.data.frame(matrix(nrow = nrow(geno),ncol = 4),row.names = rownames(geno) )
       for( ii in 1:nrow(geno) ){
         if(AdjustGC){fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe, Fj , G = geno[ii,])}else{fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe , G = geno[ii,])}
@@ -173,17 +172,48 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
         fit <- try( gamlss( design ,data = fit_data , family = BB(mu.link = "logit")) )
         if(class(fit)[1]!= "try-error"){
           est <- tidy(fit)
-          tmp_est[ii,] <- data.frame(beta =  est[est$term == "G","estimate"],
-                                     std.err = est[est$term == "G","std.error"],
+          tmp_est[ii,] <- data.frame(beta =  est[est$term == "G","estimate"], 
+                                     theta = 1/exp(est[est$parameter == "sigma","estimate"]), 
                                      pvalue = est[est$term == "G","p.value"], 
-                                     theta = 1/exp(est[est$parameter == "sigma","estimate"]),
                                      p.theta = est[est$parameter == "sigma","p.value"] ) 
         }else{
-            tmp_est[ii,] <- data.frame(beta = NA, std.err = NA,  pvalue =NA,theta = NA, p.theta = NA ) 
+            tmp_est[ii,] <- data.frame(beta = NA, theta = NA, pvalue =NA, p.theta = NA ) 
           }
         
       }
-      colnames(tmp_est) <- c("beta","std.err","pvalue","theta","p.theta")
+      colnames(tmp_est) <- c("beta","theta","pvalue","p.theta")
+      
+      ## Do N round of permutaion
+      permu_est.all <- as.data.frame(matrix(nrow = nrow(geno),ncol = 3*Nround),row.names = rownames(geno) )
+      for( N in 1:Nround){
+        
+        Y0rsh <-  Y0[i,sample(1:length(MeRIPdata@samplenames),size = length(MeRIPdata@samplenames),replace = F)]
+        Y1rsh <-  Y1[i,sample(1:length(MeRIPdata@samplenames),size = length(MeRIPdata@samplenames),replace = F)]
+        
+        permu_est <- as.data.frame(matrix(nrow = nrow(geno),ncol = 3),row.names = rownames(geno) )
+        for( ii in 1:nrow(geno) ){
+          if(AdjustGC){fit_data <- data.frame(Y0i = Y0rsh, Y1i = Y1rsh, T1, T0, K_IPe, Fj , G = geno[ii,])}else{fit_data <- data.frame(Y0i = Y0rsh, Y1i = Y1rsh, T1, T0, K_IPe , G = geno[ii,])}
+          ## add PCs to data
+          if(PCsToInclude > 1 ){ fit_data <- cbind(fit_data,data.frame(PCs[,1:PCsToInclude]) )}else if(PCsToInclude == 1){fit_data <- cbind(fit_data,data.frame(PC1 = PCs[,1]) ) }
+          ## add covariates
+          if(! is.null(Covariates) ){fit_data <- cbind(fit_data,as.data.frame(Covariates) )  }
+          
+          fit <- try( gamlss( design ,data = fit_data , family = BB(mu.link = "logit")) )
+          if(class(fit)[1]!= "try-error"){
+            est <- tidy(fit)
+            permu_est[ii,] <- data.frame(beta =  est[est$term == "G","estimate"],
+                                         std.err = est[est$term == "G","std.error"],
+                                         pvalue = est[est$term == "G","p.value"]
+            ) 
+          }else{
+            permu_est[ii,] <- data.frame(beta = NA, std.err = NA, pvalue =NA ) 
+          }
+          
+        }
+        
+        permu_est.all[,(1:3)+3*(N-1)] <- permu_est
+        colnames(permu_est.all)[(1:3)+3*(N-1)]<- paste0(c("beta.","std.err.","p."),N)
+      }
         
       ## calculate distance with respect to transcript(gene) strand
       distance <- if(as.character(strand(peak_bed.gr[i])) == "+"){
@@ -198,15 +228,15 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
         ALT = geno.vcf@fix[,"ALT"],
         PEAK = paste0(Chromosome,":",peak_bed.gr[i]$thickStart,"-",peak_bed.gr[i]$thickEnd,"_",peak_bed.gr[i]$name,"_",strand( peak_bed.gr[i]) ),
         DISTANCE = distance
-      ),tmp_est)
-      report[!is.na(report$beta),]
+      ),tmp_est,permu_est.all)
+      report[!apply(report,1,function(rp){any(is.na(rp))} ),]
     }
 
   }
   rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
   endTime <- Sys.time()
   cat(paste("Time used to test association: ",round(difftime(endTime, startTime, units = "mins"),digits = 1)," mins. \n"))
-  cat(paste0(nrow(testResult)," SNP-peak pair tested.\n"))
+
   return(testResult)
 }
 

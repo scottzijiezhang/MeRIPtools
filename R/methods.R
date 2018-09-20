@@ -853,7 +853,7 @@ setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, lib
 #' @param libraryType "opposite" for mRNA stranded library, "same" for samll RNA library
 #' @param adjustExprLevel Logic parameter determining whether adjust coverage so that input are at "same" expression level.
 #' @export
-setMethod("plotSNPpeakPairs", signature("MeRIP.Peak"), function(object, genotypeFile, SNPID,libraryType = "opposite", center = mean ,ZoomIn=NULL, adjustExprLevel = TRUE){
+setMethod("plotSNPpeakPairs", signature("MeRIP.Peak"), function(object, genotypeFile,SNPID, geneName ,libraryType = "opposite", center = mean ,ZoomIn=NULL, adjustExprLevel = TRUE){
   
   if( length(object@GTF) == 0 ){ stop("Please run PrepCoveragePlot(object) first.") }
   
@@ -882,7 +882,8 @@ setMethod("plotSNPpeakPairs", signature("MeRIP.Peak"), function(object, genotype
                    center = center ,
                    GTF = object@GTF,
                    ZoomIn = ZoomIn, adjustExprLevel = adjustExprLevel, plotSNP = data.frame(loc = as.numeric(snp_loc), anno = paste0(snp_ref,"/",snp_alt) )  )+
-    ggtitle(paste0("SNPID: ",SNPID,"    m6A peak on: ",geneName))+theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.title =  element_text(hjust = 0.5,size = 13,face = "bold"),legend.text =  element_text(size = 12,face = "bold"))
+    ggtitle(paste0("SNPID: ",SNPID,"    m6A peak on: ",geneName))+theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.title =  element_text(hjust = 0.5,size = 13,face = "bold"),legend.text =  element_text(size = 12,face = "bold"))+
+    scale_y_continuous(expand = c(0.02, 0))
   
 })
 
