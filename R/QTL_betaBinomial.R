@@ -162,7 +162,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       if(AdjustGC){Fj <- FIj[i,]}
       
       ## Test QTLs for peak.j
-      tmp_est <- as.data.frame(matrix(nrow = nrow(geno),ncol = 4),row.names = rownames(geno) )
+      tmp_est <- as.data.frame(matrix(nrow = nrow(geno),ncol = 5),row.names = rownames(geno) )
       for( ii in 1:nrow(geno) ){
         if(AdjustGC){fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe, Fj , G = geno[ii,])}else{fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe , G = geno[ii,])}
         ## add PCs to data
