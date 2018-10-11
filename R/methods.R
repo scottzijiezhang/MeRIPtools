@@ -872,19 +872,19 @@ setMethod("plotSNPpeakPairs", signature("MeRIP.Peak"), function(object, genotype
   
   X <- factor(X,levels=c(paste0(snp_ref,snp_ref),paste0(snp_ref,snp_alt),paste0(snp_alt,snp_alt))[c(paste0(snp_ref,snp_ref),paste0(snp_ref,snp_alt),paste0(snp_alt,snp_alt))%in%X])
   
-  plotGeneCoverage(IP_BAMs = IP.files(object), 
-                   INPUT_BAMs = Input.files(object), 
-                   size.IP =  object@sizeFactor$ip ,
-                   size.INPUT = object@sizeFactor$input ,
-                   X = X, geneName = geneName, 
-                   geneModel = object@geneModel, 
-                   libraryType = libraryType, 
-                   center = center ,
-                   GTF = object@GTF,
-                   ZoomIn = ZoomIn, adjustExprLevel = adjustExprLevel, plotSNP = data.frame(loc = as.numeric(snp_loc), anno = paste0(snp_ref,"/",snp_alt) )  )+
-    ggtitle(paste0("SNPID: ",SNPID,"    m6A peak on: ",geneName))+theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.title =  element_text(hjust = 0.5,size = 13,face = "bold"),legend.text =  element_text(size = 12,face = "bold"))+
-    scale_y_continuous(expand = c(0.02, 0))
-  
+  suppressMessages(plotGeneCoverage(IP_BAMs = IP.files(object), 
+                                    INPUT_BAMs = Input.files(object), 
+                                    size.IP =  object@sizeFactor$ip ,
+                                    size.INPUT = object@sizeFactor$input ,
+                                    X = X, geneName = geneName, 
+                                    geneModel = object@geneModel, 
+                                    libraryType = libraryType, 
+                                    center = center ,
+                                    GTF = object@GTF,
+                                    ZoomIn = ZoomIn, adjustExprLevel = adjustExprLevel, plotSNP = data.frame(loc = as.numeric(snp_loc), anno = paste0(snp_ref,"/",snp_alt) )  )+
+                     ggtitle(paste0("SNPID: ",SNPID,"    m6A peak on: ",geneName))+theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.title =  element_text(hjust = 0.5,size = 13,face = "bold"),legend.text =  element_text(size = 12,face = "bold"))+
+                     scale_y_continuous(expand = c(0.02,0,-0.01,0) )
+                   )
 })
 
 

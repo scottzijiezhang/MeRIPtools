@@ -1,4 +1,3 @@
-
 #' @title plotGeneCoverage
 #' @param IP_BAM The bam files for IP samples
 #' @param INPUT_BAM The bam files for INPUT samples
@@ -12,24 +11,45 @@
 #' @param plotSNP The option to plot SNP on the figure. Null by default. If want to include SNP in the plot, the parameter needs to ba a dataframe like this:  data.frame(loc= position, anno="A/G")
 #' @export
 plotGeneCoverage <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, geneName, geneModel, libraryType = "opposite", center = mean ,GTF,ZoomIn=NULL, adjustExprLevel = FALSE, plotSNP = NULL){
-
-  registerDoParallel( length(levels(X)) )
-  INPUT.cov <- foreach(ii = levels(X),.combine = cbind)%dopar%{
-    getAveCoverage(geneModel= geneModel,bamFiles = INPUT_BAMs[X==ii],geneName = geneName,size.factor = size.INPUT[X==ii], libraryType = libraryType, center = center,ZoomIn = ZoomIn)
-  }
-  IP.cov <- foreach(ii = levels(X),.combine = cbind)%dopar%{
-    getAveCoverage(geneModel= geneModel,bamFiles = IP_BAMs[X==ii],geneName = geneName,size.factor = size.IP[X==ii], libraryType = libraryType, center = center, ZoomIn = ZoomIn)
-  }
-  rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
-
+  
+  ## Get INPUT coverage first if adjust for expression level
   if(adjustExprLevel){
+    locus <- as.data.frame( range(geneModel[geneName][[1]]) )
+    if(is.null(ZoomIn)){
+    }else{
+      locus$start = ZoomIn[1]
+      locus$end = ZoomIn[2]
+      locus$width = ZoomIn[2] - ZoomIn[1] + 1
+    }
+    local.covs <- sapply(INPUT_BAMs,getCov,locus=locus, libraryType = libraryType)
+    cov.size <- colSums( local.covs) / mean(colSums(local.covs) )
+    ## add expression level adjust factor into library size factor
+    size.INPUT.adj <- size.INPUT*cov.size
+    size.IP.adj <- size.IP*cov.size
     
-    ## Compute size factor for adjustment considering only coverage on the exons
-    cov.size <- colSums(INPUT.cov)/mean(colSums(INPUT.cov))
+    registerDoParallel( length(levels(X)) )
+    INPUT.cov <- foreach(ii = levels(X),.combine = cbind)%dopar%{
+      getAveCoverage(geneModel= geneModel,bamFiles = INPUT_BAMs[X==ii],geneName = geneName,size.factor = size.INPUT.adj[X==ii], libraryType = libraryType, center = center,ZoomIn = ZoomIn)
+    }
+    IP.cov <- foreach(ii = levels(X),.combine = cbind)%dopar%{
+      getAveCoverage(geneModel= geneModel,bamFiles = IP_BAMs[X==ii],geneName = geneName,size.factor = size.IP.adj[X==ii], libraryType = libraryType, center = center, ZoomIn = ZoomIn)
+    }
+    rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
+  }else{
     
-    INPUT.cov <- t(  t(INPUT.cov)/cov.size )
-    IP.cov <- t( t(IP.cov)/cov.size )
+    registerDoParallel( length(levels(X)) )
+    INPUT.cov <- foreach(ii = levels(X),.combine = cbind)%dopar%{
+      getAveCoverage(geneModel= geneModel,bamFiles = INPUT_BAMs[X==ii],geneName = geneName,size.factor = size.INPUT[X==ii], libraryType = libraryType, center = center,ZoomIn = ZoomIn)
+    }
+    IP.cov <- foreach(ii = levels(X),.combine = cbind)%dopar%{
+      getAveCoverage(geneModel= geneModel,bamFiles = IP_BAMs[X==ii],geneName = geneName,size.factor = size.IP[X==ii], libraryType = libraryType, center = center, ZoomIn = ZoomIn)
+    }
+    rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
+    
   }
+  
+
+
 
   cov.data <- data.frame(genome_location=rep(as.numeric(rownames(IP.cov) ),length(levels(X))),
                          IP=c(IP.cov),Input=c(INPUT.cov),
@@ -39,7 +59,7 @@ plotGeneCoverage <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, geneNam
 
   chr <- unique(as.character(as.data.frame(geneModel[geneName])$seqnames))
 
-  p1 <- "ggplot(data = cov.data,aes(genome_location))+geom_line(aes(y=Input,colour =Group))+geom_ribbon(aes(ymax = IP,ymin=0,fill=Group), alpha = 0.4)+labs(y=\"normalized coverage\",x = paste0( \"Genome location on chromosome: \", chr) )+scale_x_continuous(breaks = round(seq(min(cov.data$genome_location), max(cov.data$genome_location), by = ((max(cov.data$genome_location)-min(cov.data$genome_location))/10) )),expand = c(0,0))+theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+  p1 <- "ggplot(data = cov.data,aes(genome_location))+geom_line(aes(y=Input,colour =Group))+geom_ribbon(aes(ymax = IP,ymin=0,fill=Group), alpha = 0.4)+labs(y=\"normalized coverage\",x = paste0( \"Genome location on chromosome: \", chr) )+scale_x_continuous(breaks = round(seq(min(cov.data$genome_location), max(cov.data$genome_location), by = ((max(cov.data$genome_location)-min(cov.data$genome_location))/10) )),expand = c(0,0,0,0))+theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
   panel.grid.minor = element_blank(), axis.line = element_line(colour = \"black\"),axis.title = element_text(face = \"bold\"),axis.text = element_text(face = \"bold\") ) + scale_fill_discrete(name=\"IP\") + scale_colour_discrete(name=\"INPUT\")+ scale_y_continuous(expand = c(0, 0))"
 
   p2 <- .getGeneModelAnno(geneModel,geneName,GTF,ZoomIn)
@@ -52,18 +72,18 @@ plotGeneCoverage <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, geneNam
     ## if the SNP is outside of the gene
     if(plotSNP$loc >max(cov.data$genome_location) ){
 
-      plotSNP_new <- max(cov.data$genome_location) + 0.025*length(cov.data$genome_location)
+      plotSNP_new <- max(cov.data$genome_location) + 0.02*length(cov.data$genome_location)
       p3 <- "annotate(\"rect\",xmin = ( plotSNP_new -2 ), xmax = ( plotSNP_new +2 ) , ymin = -0.08*yscale, ymax = -0.02*yscale, alpha = .99, colour = \"red\")+
       annotate(\"text\", ,x=plotSNP_new, y = -0.1*yscale, label= paste0(  chr,\":\",as.character(plotSNP$loc)), alpha = .99, colour = \"black\")+
-      annotate(\"text\", ,x=plotSNP_new, y = 0, label=as.character(plotSNP$anno), alpha = .99, colour = \"blue\")"
+      annotate(\"text\", ,x=plotSNP_new, y = 0, label=as.character(plotSNP$anno), alpha = .99, colour = \"blue\")+scale_x_continuous(breaks = round(seq(min(cov.data$genome_location), max(cov.data$genome_location), by = ((max(cov.data$genome_location)-min(cov.data$genome_location))/10) )),expand = c(0,0,0.06,0))"
       p <- paste(p1,p2,p3,sep = "+")
 
     }else if( plotSNP$loc<min(cov.data$genome_location) ){
 
-      plotSNP_new <- max(cov.data$genome_location) - 0.025*length(cov.data$genome_location)
+      plotSNP_new <- min(cov.data$genome_location) - 0.02*length(cov.data$genome_location)
       p3 <- "annotate(\"rect\",xmin = ( plotSNP_new -2 ), xmax = ( plotSNP_new +2 ) , ymin = -0.08*yscale, ymax = -0.02*yscale, alpha = .99, colour = \"red\")+
-      annotate(\"text\", ,x=plotSNP_new, y = -0.1*yscale, label= paste0(  chr,\":\",as.character(plotSNP$loc)), alpha = .99, colour = \"black\")+
-      annotate(\"text\", ,x=plotSNP_new, y = 0, label=as.character(plotSNP$anno), alpha = .99, colour = \"blue\")"
+      annotate(\"text\", ,x=plotSNP_new, y = -0.1*yscale, label= paste0(  chr,\":\",as.character(plotSNP$loc)), alpha = .99, colour = \"black\",fontface =2)+
+      annotate(\"text\", ,x=plotSNP_new, y = 0, label=as.character(plotSNP$anno), alpha = .99, colour = \"blue\",fontface =2)+scale_x_continuous(breaks = round(seq(min(cov.data$genome_location), max(cov.data$genome_location), by = ((max(cov.data$genome_location)-min(cov.data$genome_location))/10) )),expand = c(0.06,0,0,0))"
       p <- paste(p1,p2,p3,sep = "+")
 
     }else{ ## if the SNP is within the gene
