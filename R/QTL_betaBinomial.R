@@ -6,8 +6,9 @@
 #' @param Chromosome The chromsome to run QTL test.
 #' @param Range The position range on a chromosome to test.
 #' @param Covariates The matrix for covariates to be included in the test.
-#' @param AdjustGC Logic. Chose whether explicitly adjust GC bias.
-#' @param AdjIPeffi Logic. Chose whether explicitly adjust overall IP efficiency
+#' @param AdjustGC Logic. Choose whether explicitly adjust GC bias.
+#' @param AdjIPeffi Logic. Choose whether explicitly adjust overall IP efficiency
+#' @param normalizeGenotype Logic. Choose whether genotype is normalized to mean = 0, var = 1 before regression.
 #' @import stringr
 #' @import vcfR
 #' @import BSgenome
@@ -15,7 +16,7 @@
 #' @import gamlss.dist
 #' @import broom
 #' @export
-QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,testWindow = 100000, Chromosome, Range = NULL, Covariates = NULL, AdjustGC = TRUE, AdjIPeffi = TRUE , PCsToInclude = 0 , thread = 1 ){
+QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,testWindow = 100000, Chromosome, Range = NULL, Covariates = NULL, AdjustGC = TRUE, AdjIPeffi = TRUE , PCsToInclude = 0 , normalizeGenotype = FALSE, thread = 1 ){
    
   ##check input
   if( !is(MeRIPdata, "MeRIP.Peak") ){
@@ -159,6 +160,11 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       MAF <- apply(geno,1,function(x) !any(table(x)>0.95*ncol(geno)) )
       geno <- geno[MAF,] 
       geno.vcf <- geno.vcf[MAF,]
+      
+      if(normalizeGenotype){
+        geno <- t( apply(geno,1,function(x){ (x - mean(x) )/sd(x) }) )
+      }
+      
       if(AdjustGC){Fj <- FIj[i,]}
       
       ## Test QTLs for peak.j
