@@ -1,8 +1,8 @@
 Package: MeRIPtools
 Type: Package
-Title: Analyze m6A seq data
-Version: 0.0.2
-Author: 
+Title: Analyze MeRIP-seq data and QTL calling
+Version: 0.0.3
+Author: Zijie Zhang, Kaixuan Luo ,Xin He
 Maintainer: The package maintainer <scottzjzhang@uchicago.edu>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
