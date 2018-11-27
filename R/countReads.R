@@ -141,7 +141,7 @@ countReads<-function(
 
   data.out <- MeRIP(reads = reads, binSize = binSize, geneModel = geneGRList, bamPath.input = bamPath.input, bamPath.ip = bamPath.IP, samplenames = samplenames)
   if(saveOutput){
-    saveRDS(data.out,paste0(outputDir,"/m6Amonster_readCounts.RDS"))
+    saveRDS(data.out,paste0(outputDir,"/MeRIP_readCounts.RDS"))
   }
 
 
