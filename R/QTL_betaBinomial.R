@@ -45,6 +45,9 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
     cat("Only samples in MeRIP.Peak object overlapping samples in VCF file will be analyzed in QTL mapping!\nSubsetting samples...\n")
     MeRIPdata <- select(MeRIPdata, intersect(genotypeSamples,samplenames(MeRIPdata))  )
     cat(paste0(paste(intersect(genotypeSamples,samplenames(MeRIPdata)),collapse = " "), "\n(",length(intersect(genotypeSamples,samplenames(MeRIPdata))),") samples will be analyzed!"))
+  }else{
+    ## make sure the order of samples aligned between phenotype and genotype
+    MeRIPdata <- select(MeRIPdata, intersect(genotypeSamples,samplenames(MeRIPdata))  )
   }
   
   ### Preprocess
