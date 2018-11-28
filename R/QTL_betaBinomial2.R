@@ -1,11 +1,14 @@
 #' @title QTL_BetaBin2
+#' @description Same as QTL_BetaBin except sizeFactor estimated by Median of ratio method was used to scale library size instead of total coverage.
 #' @param MeRIPdata The MeRIP.Peak object
 #' @param vcf_file The vcf file for genotype. The chromosome position must be sorted!!
 #' @param BSgenome The BSgenome object. This needs to match the genome version of the gtf files. 
 #' @param testWindow Integer. Test SNPs in <testWindow> bp window flanking the peak.
 #' @param Chromosome The chromsome to run QTL test.
+#' @param AdjustGC Logic. Choose whether explicitly adjust GC bias.
 #' @param Range The position range on a chromosome to test.
 #' @param Covariates The matrix for covariates to be included in the test.
+#' @param normalizeGenotype Logic. Choose whether genotype is normalized to mean = 0, var = 1 before regression.
 #' @import stringr
 #' @import vcfR
 #' @import BSgenome
@@ -13,7 +16,7 @@
 #' @import gamlss.dist
 #' @import broom
 #' @export
-QTL_BetaBin2 <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,testWindow = 100000, Chromosome, Range = NULL, Covariates = NULL, AdjustGC = TRUE, PCsToInclude = 0 , thread = 1 ){
+QTL_BetaBin2 <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,testWindow = 100000, Chromosome, Range = NULL, Covariates = NULL, AdjustGC = TRUE, PCsToInclude = 0 , normalizeGenotype = FALSE, thread = 1 ){
    
   ##check input
   if( !is(MeRIPdata, "MeRIP.Peak") ){
@@ -24,10 +27,35 @@ QTL_BetaBin2 <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCS
     cat("The input data has not performed library normalization. Normalizing library...\n")
     MeRIPdata <- normalizeLibrary(MeRIPdata)
   }
+  
+  ## check samples in genotype files and in MeRIP.Peak object
+  tmpVcf <- tempfile(fileext = ".vcf.gz")
+  system(paste0("zcat ",vcf_file," | awk 'NR==1 {print $0} (/^#CHROM/){print $0}'| gzip > ",tmpVcf))
+  tmp.vcf <-try(  read.vcfR( file =tmpVcf, verbose = F ) , silent = T)
+  ############################################################################################################################################################
+  ### This is to handle a wired error in the read.vcfR function. #############################################################################################
+  if(class(tmp.vcf) == "try-error"){                                                                                                                       ##
+    system(paste0("zcat ",vcf_file," | awk '/^#/ {print $0}'| gzip >",tmpVcf))  ##
+    tmp.vcf <-read.vcfR( file =tmpVcf, verbose = F )                                                                                                       ##
+  }                                                                                                                                                         ##
+  ############################################################################################################################################################
+  unlink(tmpVcf) # remove the temp file to free space.
+  genotypeSamples <- colnames(tmp.vcf@gt)[-c(1)]
+  if(length(intersect(genotypeSamples,samplenames(MeRIPdata))) == 0 ){
+    stop("The samplenames must match in VCF file and in MeRIP.Peak object! We found no overlap between sample names in these two files!")
+  }else if(length(intersect(genotypeSamples,samplenames(MeRIPdata))) != length(samplenames(MeRIPdata) )){
+    cat("The samples in the VCF don't totally match samples in the MeRIP.Peak object; ")
+    cat("Only samples in MeRIP.Peak object overlapping samples in VCF file will be analyzed in QTL mapping!\nSubsetting samples...\n")
+    MeRIPdata <- select(MeRIPdata, intersect(genotypeSamples,samplenames(MeRIPdata))  )
+    cat(paste0(paste(intersect(genotypeSamples,samplenames(MeRIPdata)),collapse = " "), "\n(",length(intersect(genotypeSamples,samplenames(MeRIPdata))),") samples will be analyzed!"))
+  }else{
+    ## make sure the order of samples aligned between phenotype and genotype
+    MeRIPdata <- select(MeRIPdata, intersect(genotypeSamples,samplenames(MeRIPdata))  )
+  }
+  
   ### Preprocess
   ##fitler out peaks with zero count
   MeRIPdata <- filter(MeRIPdata, !apply(extractInput(MeRIPdata), 1, function(x) any(x == 0 )) )
-  
   
    ##filter out peaks with OR  < 1
   enrichFlag <- apply(  t( t(extractIP(MeRIPdata))/MeRIPdata@sizeFactor$ip ) /  t( t( extractInput(MeRIPdata) )/MeRIPdata@sizeFactor$input ) ,1,function(x){sum(x>1)> MeRIPdata@jointPeak_threshold})
@@ -80,10 +108,13 @@ QTL_BetaBin2 <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCS
  
   
   ## set ranges on the chromosome that can be tested
-  con <- pipe(paste0("zcat ",vcf_file," | awk '!/^#/ {print $2}' | tail -n1"))
-  vcfRange <- c( read.table(gzfile(vcf_file), nrows = 1)[,2] ,
-                scan( con , quiet = T ))
-  close(con)
+  con1 <- pipe(paste0("zcat ",vcf_file," | grep -w '",Chromosome,"' |awk '!/^#/ {print $2}' | head -n1"))
+  con2 <- pipe(paste0("zcat ",vcf_file," | grep -w '",Chromosome,"' |awk '!/^#/ {print $2}' | tail -n1"))
+  vcfRange <- c( scan( con1 , quiet = T ) ,
+                 scan( con2 , quiet = T ))
+  close(con1)
+  close(con2)
+  cat("----------------\n")
   ## update test Range if necessary
   if(!is.null(Range)){
     vcfRange <- intersect(IRanges(vcfRange[1],vcfRange[2]),IRanges(Range[1],Range[2]) )
@@ -138,17 +169,34 @@ QTL_BetaBin2 <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCS
       ############################################################################################################################################################
       unlink(tmpVcf) # remove the temp file to free space.
       
-      ## filter biallelic snps
-      geno.vcf <- geno.vcf[is.biallelic(geno.vcf),]
-
-      ## get genotype as Dosage
-      tmp_geno <- extract.gt(geno.vcf, element = 'GT' )
-      geno <- t( apply( tmp_geno ,1, .genoDosage ) )
-      colnames(geno) <- colnames(tmp_geno)
-      ## filter out any genotype that has MAF<0.05
-      MAF <- apply(geno,1,function(x) !any(table(x)>0.95*ncol(geno)) )
-      geno <- geno[MAF,] 
-      geno.vcf <- geno.vcf[MAF,]
+      ## check if genotype available for this peak
+      if( nrow(geno.vcf@fix) == 0 ){ return(NULL) }
+      
+      ## Get genotype as dosage format and filter for MAF
+      if( unique(geno.vcf@gt[,"FORMAT"]) == "DS" ){
+        ## Directly extract dosage
+        geno <- apply(extract.gt(geno.vcf, element = 'DS' ),2,as.numeric )
+        rownames(geno) <- geno.vcf@fix[,"ID"]
+        ## filter out any genotype that has MAF<0.05
+        MAF <- apply(geno,1,function(x) !any(table(round(x) )>0.95*ncol(geno)) )
+        geno <- geno[MAF,] 
+        geno.vcf <- geno.vcf[MAF,]
+      }else if(unique(geno.vcf@gt[,"FORMAT"]) == "GT"){
+        geno.vcf <- geno.vcf[is.biallelic(geno.vcf),]
+        ## get genotype as Dosage
+        tmp_geno <- extract.gt(geno.vcf, element = 'GT' )
+        geno <- t( apply( tmp_geno ,1, .genoDosage ) )
+        colnames(geno) <- colnames(tmp_geno)
+        ## filter out any genotype that has MAF<0.05
+        MAF <- apply(geno,1,function(x) !any(table(x)>0.95*ncol(geno)) )
+        geno <- geno[MAF,] 
+        geno.vcf <- geno.vcf[MAF,]
+      }
+      
+      ## normalized genotype is necessary
+      if(normalizeGenotype){
+        geno <- t( apply(geno,1,function(x){ (x - mean(x) )/sd(x) }) )
+      }
       
       if(AdjustGC){Fj <- FIj[i,]}
       

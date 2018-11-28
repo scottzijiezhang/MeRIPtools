@@ -72,12 +72,15 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
     ## GC content correction
     peak.gr <- .peakToGRangesList( jointPeak(MeRIPdata))
     cat("...")
+    
     registerDoParallel( thread )
-    peakGC <- foreach( i = 1:length(peak.gr), .combine = c)%dopar%{
-      peakSeq <- paste( getSeq( BSgenome , peak.gr[[i]] ,as.character =T ) , collapse = "")
-      sum( str_count(peakSeq, c("G","g","C","c"))  )/nchar(peakSeq)
+    peakSeq <- foreach( i = 1:length(peak.gr), .combine = c )%dopar%{
+      paste( getSeq( BSgenome , peak.gr[[i]] ,as.character =T ) , collapse = "")
     }
+    peakGC <- sapply( peakSeq, function(x){ sum( str_count(x, c("G","g","C","c"))  )/nchar(x) } )
+    
     cat("...")
+    
     peakGC_l <- round(peakGC,digits = 2)
     peakGC_l[which(peakGC_l<0.2)] <-median(peakGC_l[which(peakGC_l<0.2)] ) # combine some bins at low GC due to low number of peaks
     peakGC_l[which(peakGC_l>0.84)] <-median(peakGC_l[which(peakGC_l>0.84)] ) # combine some bins at high GC due to low number of peaks
@@ -178,7 +181,10 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       ############################################################################################################################################################
       unlink(tmpVcf) # remove the temp file to free space.
       
+      ## check if genotype available for this peak
+      if( nrow(geno.vcf@fix) == 0 ){ return(NULL) }
       
+      ## Get genotype as dosage format and filter for MAF
       if( unique(geno.vcf@gt[,"FORMAT"]) == "DS" ){
         ## Directly extract dosage
         geno <- apply(extract.gt(geno.vcf, element = 'DS' ),2,as.numeric )
@@ -198,7 +204,8 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
         geno <- geno[MAF,] 
         geno.vcf <- geno.vcf[MAF,]
       }
-    
+      
+      ## normalized genotype is necessary
       if(normalizeGenotype){
         geno <- t( apply(geno,1,function(x){ (x - mean(x) )/sd(x) }) )
       }
