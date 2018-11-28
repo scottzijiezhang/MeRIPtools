@@ -187,7 +187,11 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       ## Get genotype as dosage format and filter for MAF
       if( unique(geno.vcf@gt[,"FORMAT"]) == "DS" ){
         ## Directly extract dosage
-        geno <- apply(extract.gt(geno.vcf, element = 'DS' ),2,as.numeric )
+        geno <- if(nrow(geno.vcf@fix) == 1){ 
+          t(apply(extract.gt(geno.vcf, element = 'DS' ),2,as.numeric ) )
+        }else{
+          apply(extract.gt(geno.vcf, element = 'DS' ),2,as.numeric )
+          }
         rownames(geno) <- geno.vcf@fix[,"ID"]
         ## filter out any genotype that has MAF<0.05
         MAF <- apply(geno,1,function(x) !any(table(round(x) )>0.95*ncol(geno)) )
@@ -204,6 +208,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
         geno <- geno[MAF,] 
         geno.vcf <- geno.vcf[MAF,]
       }
+      if( nrow(geno) == 0 ){ return(NULL) } ## skip this iteration if no genotype left after filtering
       
       ## normalized genotype is necessary
       if(normalizeGenotype){
@@ -211,6 +216,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       }
       
       if(AdjustGC){Fj <- FIj[i,]}
+      
       
       ## Test QTLs for peak.j
       tmp_est <- as.data.frame(matrix(nrow = nrow(geno),ncol = 5),row.names = rownames(geno) )
