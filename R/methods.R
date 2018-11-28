@@ -1291,7 +1291,7 @@ setMethod("select", signature("MeRIP"),function(object , samples ){
 #' @param object The MeRIP.Peak object
 #' @param samples The samplenames to be subset or the index number of samples to be subset.
 #' @return an MeRIP.Peak object of selected samples.
-setMethod("select", signature("MeRIP.Peak"),function(object , samples ){
+setMethod("select", signature("MeRIP.Peak"),function(object , samples, keepData=TRUE ){
   
   id <- if( is.integer(samples) & all(samples > 0) & all(samples < length(samplenames(object))) ){
     samples
@@ -1301,40 +1301,71 @@ setMethod("select", signature("MeRIP.Peak"),function(object , samples ){
     stop("Please specify valide samplenames or index to subset the dataset.")
   }
   
-  newOb <- new(Class = "MeRIP.Peak",
-               reads = counts(object)[,c(id,id + length(samplenames(object)))],
-               binSize = object@binSize,
-               geneModel = object@geneModel,
-               gtf = object@gtf,
-               bamPath.input = Input.files(object)[id],
-               bamPath.ip = IP.files(object)[id],
-               samplenames = samplenames(object)[id],
-               geneBins = geneBins(object),
-               GTF = object@GTF,
-               peakCalling = object@peakCalling,
-               jointPeak_threshold = object@jointPeak_threshold,
-               test.method = object@test.method ,
-               jointPeak_id_pairs = object@jointPeak_id_pairs,
-               jointPeaks = object@jointPeaks
-  )
-  
-  newOb@geneSum <- if( nrow(object@geneSum) > 1 ){object@geneSum[,id]}else{object@geneSum}
-  newOb@peakCallResult <- if(nrow(object@peakCallResult) > 1){object@peakCallResult[,id]}else{object@peakCallResult}
-  newOb@jointPeak_ip <- if(nrow(object@jointPeak_ip) > 1 ){object@jointPeak_ip[,id]}else{object@jointPeak_ip}
-  newOb@jointPeak_input <- if(nrow(object@jointPeak_input) > 1 ){object@jointPeak_ip[,id]}else{object@jointPeak_input}
-  newOb@norm.jointPeak_ip <- if(nrow(object@norm.jointPeak_ip) > 1 ){object@norm.jointPeak_ip[,id]}else{object@norm.jointPeak_ip}
-  newOb@sizeFactor <- if(nrow(object@sizeFactor) > 1 ){object@sizeFactor[id,]}else{object@sizeFactor}
-  newOb@variate <- if(nrow(object@variate) > 1 ){ if(ncol(object@variate)>1){
-    object@variate[id,]
-  }else{
-    newVar <- data.frame(object@variate[id,])
-    colnames(newVar) <- colnames(object@variate)
-    newVar
-  } }else{
-    object@variate
+
+  if(keepData){
+    newOb <- new(Class = "MeRIP.Peak",
+                 reads = counts(object)[,c(id,id + length(samplenames(object)))],
+                 binSize = object@binSize,
+                 geneModel = object@geneModel,
+                 gtf = object@gtf,
+                 bamPath.input = Input.files(object)[id],
+                 bamPath.ip = IP.files(object)[id],
+                 samplenames = samplenames(object)[id],
+                 geneBins = geneBins(object),
+                 GTF = object@GTF,
+                 peakCalling = object@peakCalling,
+                 jointPeak_threshold = object@jointPeak_threshold,
+                 test.method = object@test.method ,
+                 jointPeak_id_pairs = object@jointPeak_id_pairs,
+                 jointPeaks = object@jointPeaks
+    )
+    
+    newOb@geneSum <- if( nrow(object@geneSum) > 1 ){object@geneSum[,id]}else{object@geneSum}
+    newOb@peakCallResult <- if(nrow(object@peakCallResult) > 1){object@peakCallResult[,id]}else{object@peakCallResult}
+    newOb@jointPeak_ip <- if(nrow(object@jointPeak_ip) > 1 ){object@jointPeak_ip[,id]}else{object@jointPeak_ip}
+    newOb@jointPeak_input <- if(nrow(object@jointPeak_input) > 1 ){object@jointPeak_input[,id]}else{object@jointPeak_input}
+    newOb@norm.jointPeak_ip <- if(nrow(object@norm.jointPeak_ip) > 1 ){object@norm.jointPeak_ip[,id]}else{object@norm.jointPeak_ip}
+    newOb@sizeFactor <- if(nrow(object@sizeFactor) > 1 ){object@sizeFactor[id,]}else{object@sizeFactor}
+    newOb@variate <- if(nrow(object@variate) > 1 ){ if(ncol(object@variate)>1){
+      object@variate[id,]
+    }else{
+      newVar <- data.frame(object@variate[id,])
+      colnames(newVar) <- colnames(object@variate)
+      newVar
+    } }else{
+      object@variate
     }
-  newOb@jointPeak_adjExpr <- if(nrow(object@jointPeak_adjExpr) > 1 ){object@jointPeak_adjExpr[,id]}else{object@jointPeak_adjExpr}
-  if(nrow(object@test.est) > 1 ){cat("Inferential test is not inherited because test result changes when samples are altered!\nPlease re-do test.\n")}
+    newOb@jointPeak_adjExpr <- if(nrow(object@jointPeak_adjExpr) > 1 ){object@jointPeak_adjExpr[,id]}else{object@jointPeak_adjExpr}
+    
+  }else{
+    newOb <- new(Class = "MeRIP.Peak",
+                 reads = counts(object)[,c(id,id + length(samplenames(object)))],
+                 binSize = object@binSize,
+                 geneModel = object@geneModel,
+                 gtf = object@gtf,
+                 bamPath.input = Input.files(object)[id],
+                 bamPath.ip = IP.files(object)[id],
+                 samplenames = samplenames(object)[id],
+                 geneBins = geneBins(object),
+                 GTF = object@GTF,
+                 peakCalling = object@peakCalling,
+                 test.method = object@test.method 
+    )
+    
+    newOb@geneSum <- if( nrow(object@geneSum) > 1 ){object@geneSum[,id]}else{object@geneSum}
+    newOb@peakCallResult <- if(nrow(object@peakCallResult) > 1){object@peakCallResult[,id]}else{object@peakCallResult}
+    newOb@variate <- if(nrow(object@variate) > 1 ){ if(ncol(object@variate)>1){
+      object@variate[id,]
+    }else{
+      newVar <- data.frame(object@variate[id,])
+      colnames(newVar) <- colnames(object@variate)
+      newVar
+    } }else{
+      object@variate
+    }
+    if(nrow(object@test.est) > 1 ){cat("Inferential test is not inherited because test result changes when samples are altered!\nPlease re-do test.\n")}
+  }
+  
   return(newOb)
 })
 

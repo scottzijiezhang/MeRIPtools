@@ -117,7 +117,7 @@ setGeneric("RADARtest",function(object,  exclude ,maxPsi){
 })
 
 #' @export
-setGeneric("select" ,function(object, samples){
+setGeneric("select" ,function(object, samples, keepData=TRUE){
   standardGeneric("select")
 })
 
