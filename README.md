@@ -1,4 +1,4 @@
-# m6Amonster
+# MeRIPtools
 Tool sets to analyze high throughput data for RNA modifications
 
 ### Install the R package from Github
@@ -7,8 +7,8 @@ Depends: Rsamtools, GenomicFeatures (>= 1.14.5), BH
 
 	install.packages("devtools")
 	library(devtools)
-	install_github("scottzijiezhang/m6Amonster")
-	library("m6Amonster")
+	install_github("scottzijiezhang/MeRIPtools")
+	library("MeRIPtools")
 
 ### Example to divide gene into 50bp bins and count read
 ```
