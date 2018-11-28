@@ -72,11 +72,13 @@ QTL_BetaBin2 <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCS
     cat("Computing GC content for peaks...\n")
     ## GC content correction
     peak.gr <- .peakToGRangesList( jointPeak(MeRIPdata))
+    
     registerDoParallel( thread )
-    peakGC <- foreach( i = 1:length(peak.gr), .combine = c)%dopar%{
-      peakSeq <- paste( getSeq( BSgenome , peak.gr[[i]] ,as.character =T ) , collapse = "")
-      sum( str_count(peakSeq, c("G","g","C","c"))  )/nchar(peakSeq)
+    peakSeq <- foreach( i = 1:length(peak.gr), .combine = c )%dopar%{
+      paste( getSeq( BSgenome , peak.gr[[i]] ,as.character =T ) , collapse = "")
     }
+    peakGC <- sapply( peakSeq, function(x){ sum( str_count(x, c("G","g","C","c"))  )/nchar(x) } )
+    
     peakGC_l <- round(peakGC,digits = 2)
     peakGC_l[which(peakGC_l<0.2)] <-median(peakGC_l[which(peakGC_l<0.2)] ) # combine some bins at low GC due to low number of peaks
     peakGC_l[which(peakGC_l>0.84)] <-median(peakGC_l[which(peakGC_l>0.84)] ) # combine some bins at high GC due to low number of peaks
