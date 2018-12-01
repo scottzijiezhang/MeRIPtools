@@ -102,6 +102,79 @@ callPeakFisher <- function(MeRIP, min_counts = 15, peak_cutoff_fdr = 0.05 , peak
   return(fisher_result)
 }
 
+##################################################################################################################################
+#' @title callPeakBinomial
+#' @param MeRIP The MeRIP object.
+#' @param min_counts The minimal number of reads (input + IP) required in a bin to be called a peak. 
+#' @param peak_cutoff_fdr The cutoff of fdr to call a bin peak.
+#' @param peak_cutoff_oddRatio The minimal oddRatio (IP/input) threshold to call a peak.
+#' @param threads The number of threads to use. Default uses 1 threads.
+#' @export
+callPeakBinomial <- function(MeRIP, min_counts = 15, peak_cutoff_fdr = 0.05 , peak_cutoff_oddRatio = 1, threads = 1){
+  
+  if(! is(MeRIP, "MeRIP") ){
+    stop("The input MeRIP must be a MeRIP dataset!")
+  }else if( is(MeRIP, "MeRIP.Peak") ){
+    cat(paste0("Input is an object of MeRIP.Peak, will override the peakCallResult by current call of binomial test!\n"))
+  }else{
+    cat("Performing Binomial test on MeRIP dataset to call peak...\n")
+  }
+  
+  input <- as.matrix(MeRIP@reads[,1:length(MeRIP@samplenames)])
+  ip <- as.matrix(MeRIP@reads[,(1+length(MeRIP@samplenames)):(2*length(MeRIP@samplenames))])
+  colnames(input) <- colnames(ip) <- MeRIP@samplenames
+  
+  T0 <- colSums(input)
+  T1 <- colSums(ip)
+  
+  registerDoParallel( min( length( MeRIP@samplenames ) ,threads) )
+  
+  bino_pvalue <- foreach(j = 1:length( MeRIP@samplenames ), .combine = cbind )%dopar%{
+    .Bino_test( ip[,j], input[,j], T1[j], T0[j])
+  }
+  
+  
+  oddRatio <-  t(t(ip)/T1) / t(t(input)/T0)
+  
+  ## total read count threshold
+  above_thresh_counts <- ( (input + ip ) >= min_counts )
+  
+  fdr <- foreach(j = 1:length( MeRIP@samplenames ), .combine = cbind )%dopar%{
+    tmpFDR <- p.adjust( bino_pvalue[,j] , method = "fdr")
+    ID <- which(above_thresh_counts[,j])
+    tmpFDR[ ID ] <-  p.adjust( bino_pvalue[ID,j] , method = "fdr")
+    tmpFDR
+  }
+  rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
+  
+  test_peak <- (fdr < peak_cutoff_fdr & oddRatio > peak_cutoff_oddRatio &  above_thresh_counts )
+  
+  colnames(test_peak) <- MeRIP@samplenames
+  rownames(test_peak) <- rownames(input)
+  
+  data.out <- as(MeRIP,"MeRIP.Peak")
+  data.out@geneBins <- geneBins(MeRIP)
+  data.out@peakCallResult <- test_peak
+  data.out@peakCalling <- "Binomial test"
+  return(data.out)
+  
+}
+
+
+#' @title Binomial test
+#' @return data frame with p-values and odds ratio
+.Bino_test <- function(IP, input, IP_overall, input_overall, pseudo_count=1){
+  
+  IP <- pmax(IP,pseudo_count)
+  input <- pmax(input,pseudo_count)
+  
+  p <- IP_overall/(IP_overall+input_overall)
+  
+  pvalue <-  pbinom(IP-1, size = (IP+input), p, lower.tail = FALSE )
+  
+  return(pvalue)
+}
+
 ################################################################################################################################################################
 #' @export
 #' @rdname IP.files
