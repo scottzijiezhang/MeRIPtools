@@ -10,12 +10,17 @@
 #' @param adjustExprLevel Logic parameter determining whether adjust coverage so that input are at "same" expression level.
 #' @param plotSNP The option to plot SNP on the figure. Null by default. If want to include SNP in the plot, the parameter needs to ba a dataframe like this:  data.frame(loc= position, anno="A/G")
 #' @export
-plotGeneCoverage <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, geneName, geneModel, libraryType = "opposite", center = mean ,GTF,ZoomIn=NULL, adjustExprLevel = FALSE, plotSNP = NULL){
+plotGeneCoverage <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, geneName, geneModel, libraryType = "opposite", center = mean ,GTF,ZoomIn=NULL, adjustExprLevel = FALSE, adjustExpr_peak_range = NULL, plotSNP = NULL){
   
   ## Get INPUT coverage first if adjust for expression level
   if(adjustExprLevel){
     locus <- as.data.frame( range(geneModel[geneName][[1]]) )
-    if(is.null(ZoomIn)){
+    
+    if( !is.null(adjustExpr_peak_range) ){
+      locus$start = adjustExpr_peak_range[1]
+      locus$end = adjustExpr_peak_range[2]
+      locus$width = adjustExpr_peak_range[2] - adjustExpr_peak_range[1] + 1
+    }else if(is.null(ZoomIn)){
     }else{
       locus$start = ZoomIn[1]
       locus$end = ZoomIn[2]

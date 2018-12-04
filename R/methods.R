@@ -883,7 +883,7 @@ setMethod("extractInput", signature("MeRIP.Peak"), function(object){
 #' @param ZoomIn c(start,end) The coordinate to zoom in at the gene to be ploted.
 #' @param adjustExprLevel logical parameter. Specify whether normalize the two group so that they have similar expression level.
 #' @export
-setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, libraryType = "opposite", center = mean,ZoomIn = NULL, adjustExprLevel = F ){
+setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, libraryType = "opposite", center = mean,ZoomIn = NULL, adjustExprLevel = F , adjustExpr_peak_range = NULL){
   if( nrow(variable(object))>0 ){
   X <- factor(variable(object)[,1])
   plotGeneCoverage(IP_BAMs = IP.files(object),
@@ -892,7 +892,7 @@ setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, lib
                    size.INPUT = object@sizeFactor$input,
                    X, geneName,
                    geneModel = object@geneModel,
-                   libraryType, center  ,object@GTF, ZoomIn, adjustExprLevel, plotSNP = NULL  )+
+                   libraryType, center  ,object@GTF, ZoomIn, adjustExprLevel,adjustExpr_peak_range = adjustExpr_peak_range ,plotSNP = NULL  )+
     theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.title =  element_text(hjust = 0.5,size = 13,face = "bold"),legend.text =  element_text(size = 12,face = "bold"))
 }else{
   plotGeneCoverage(IP_BAMs = IP.files(object),
@@ -901,7 +901,7 @@ setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, lib
                    size.INPUT = object@sizeFactor$input,
                    rep("All samples",length(object@samplenames)), geneName,
                    geneModel = object$geneModel,
-                   libraryType, center, object@GTF ,ZoomIn, adjustExprLevel, plotSNP = NULL  )+
+                   libraryType, center, object@GTF ,ZoomIn, adjustExprLevel,adjustExpr_peak_range = NULL ,plotSNP = NULL  )+
     theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.position="none" )
 }
 })
@@ -914,7 +914,8 @@ setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, lib
 }
 
 .getGenotype <- function(vcf.gz, SNPID){
-  tmp <- system2(command = "zcat", args = paste0(vcf.gz," |grep '",SNPID,"' |cat"),stdout = T)
+  tmp <- system2(command = "zcat", args = paste0(vcf.gz," |grep -w '",SNPID,"' |cat"),stdout = T)
+  if(length(tmp)>1){cat("Please note there are more than one locus associated with this SNPID in the vcf file! The first one was used!\n")}
   geno <- strsplit(tmp,split = "\t")[[1]]
   return(geno)
 }
@@ -924,9 +925,12 @@ setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, lib
 #' @param SNPID rsID of the SNP to be ploted
 #' @param geneName The name (as defined in gtf file) of the gene you want to plot
 #' @param libraryType "opposite" for mRNA stranded library, "same" for samll RNA library
+#' @param center The function to center the coverage of replicates. Can be mean or median. Default is mean.
+#' @param ZoommIn The range to plet the coverage plot. Needs to be within the gene to be ploted.
 #' @param adjustExprLevel Logic parameter determining whether adjust coverage so that input are at "same" expression level.
+#' @param adjustExpr_peak_range c(start,end) A vector of two interger indicating the peak range, the input coverage in which will be used to adjust the expression level. 
 #' @export
-setMethod("plotSNPpeakPairs", signature("MeRIP.Peak"), function(object, genotypeFile,SNPID, geneName ,libraryType = "opposite", center = mean ,ZoomIn=NULL, adjustExprLevel = TRUE){
+setMethod("plotSNPpeakPairs", signature("MeRIP.Peak"), function(object, genotypeFile,SNPID, geneName ,libraryType = "opposite", center = mean ,ZoomIn=NULL, adjustExprLevel = TRUE, adjustExpr_peak_range = NULL){
   
   if( length(object@GTF) == 0 ){ stop("Please run PrepCoveragePlot(object) first.") }
   
@@ -954,7 +958,9 @@ setMethod("plotSNPpeakPairs", signature("MeRIP.Peak"), function(object, genotype
                                     libraryType = libraryType, 
                                     center = center ,
                                     GTF = object@GTF,
-                                    ZoomIn = ZoomIn, adjustExprLevel = adjustExprLevel, plotSNP = data.frame(loc = as.numeric(snp_loc), anno = paste0(snp_ref,"/",snp_alt) )  )+
+                                    ZoomIn = ZoomIn, adjustExprLevel = adjustExprLevel,
+                                    adjustExpr_peak_range = adjustExpr_peak_range,
+                                    plotSNP = data.frame(loc = as.numeric(snp_loc), anno = paste0(snp_ref,"/",snp_alt) )  )+
                      ggtitle(paste0("SNPID: ",SNPID,"    m6A peak on: ",geneName))+theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.title =  element_text(hjust = 0.5,size = 13,face = "bold"),legend.text =  element_text(size = 12,face = "bold"))+
                      scale_y_continuous(expand = c(0.02,0,-0.01,0) )
                    )
@@ -1465,3 +1471,23 @@ setMethod("results", signature("MeRIP.Peak"), function(object){
   }
 })
 
+#############################################################################################################################
+
+#' @title MetaGene
+#' @param MeRIP.Peak The MeRIP.Peak object
+#' @import Guitar
+#' @export
+MetaGene <- function(MeRIP.Peak){
+  if(! is(MeRIP.Peak, "MeRIP.Peak") ){
+    stop(paste0("Input is not an object of MeRIP.Peak!\n"))
+  }else{
+    cat("Using functions from R package Guitar to plot peak distribution on meta gene...\n")
+  }
+  
+  plotMetaGene(jointPeak(MeRIP.Peak), MeRIP.Peak@gtf )
+}
+
+  
+  
+  
+  

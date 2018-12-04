@@ -1,11 +1,10 @@
 Package: MeRIPtools
 Type: Package
 Title: Analyze MeRIP-seq data and QTL calling
-Version: 0.0.3
+Version: 0.1.0
 Author: Zijie Zhang, Kaixuan Luo ,Xin He
 Maintainer: The package maintainer <scottzjzhang@uchicago.edu>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: ThMeRIPtools is a comprehensive toolset for analyzing MeRIP-seq (e.g. m6A-seq) and data visualization. 
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

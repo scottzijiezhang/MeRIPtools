@@ -3,24 +3,24 @@ Tool sets to analyze high throughput data for RNA modifications
 
 ### Install the R package from Github
 
-Depends: Rsamtools, GenomicFeatures (>= 1.14.5), BH
+Depends: GenomicFeatures, Rsamtools, ggplot2, doParallel, foreach,grid,rtracklayer,GenomicAlignments,reshape2,Rcpp,RcppArmadillo,
+Guitar, stringr,vcfR,gamlss, broom, DESeq2
 
 	install.packages("devtools")
 	library(devtools)
 	install_github("scottzijiezhang/MeRIPtools")
 	library("MeRIPtools")
 
-### Example to divide gene into 50bp bins and count read
-```
-countReads(
-  samplenames, # The program search for paired files for each sample: sample1.input.bam + sample1.m6A.bam
-  gtf, # Path to GTF annotation file
-  shift = 75, # This is usually half of your RNA fragment size (Usually ~150bp in our lab)
-  bamFolder, # Path to the folder where your bam files located
-  outputDir=NA, # Path to the folder where you want to save the read count result
-  modification = "m6A", # the post fix of IP sample bam file usually sample1.m6A.bam
-  binSize = 50, # What's the size of bin you want to slice the transcript 
-  strandToKeep = "opposite", # For stranded library protocol, you reads is at the opposite strand of the RNA 
-  threads = 1 # number of thread to use 
-)
-```
+## Manual page
+
+Please refer to [manual page]() for detailed instructions.  
+
+## Citation 
+MeRIPtools is a tool sets that implemented functions for peak calling, QTL calling, differential methylation analysis, visualization. 
+
+If you used MeRIPtools in your publication, please cite:
+*Something to be published...*
+
+**Note** MeRIPtools also have wrapper functions to call functions from other R packages to do specific analysis.  
+If you used the `plotMetaGene` or `MetaGene` function, please cite the original R package [`Guitar`](https://bioconductor.org/packages/release/bioc/html/Guitar.html)  
+Cui X, Wei Z, Zhang L, Liu H, Sun L, Zhang s, Huang Y, Meng J (2016). “Guitar: an R/Bioconductor package for gene annotation guided transcriptomic analysis of RNA related genomic features.” BioMed Research International. 

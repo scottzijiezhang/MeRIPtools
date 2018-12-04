@@ -101,10 +101,14 @@ setGeneric("peakDistribution",function(object){
 })
 
 #' @export
-setGeneric("plotGeneCov", function(object, geneName, libraryType, center,ZoomIn, adjustExprLevel ){ standardGeneric("plotGeneCov")})
+setGeneric("plotGeneCov", function(object, geneName, libraryType, center,ZoomIn, adjustExprLevel, adjustExpr_peak_range = NULL ){
+  standardGeneric("plotGeneCov")
+  })
 
 #' @export
-setGeneric("plotSNPpeakPairs",function(object, genotypeFile, SNPID, geneName, libraryType , center ,ZoomIn, adjustExprLevel ){standardGeneric("plotSNPpeakPairs")})
+setGeneric("plotSNPpeakPairs",function(object, genotypeFile, SNPID, geneName, libraryType = "opposite", center = mean,ZoomIn = NULL, adjustExprLevel,adjustExpr_peak_range = NULL ){
+  standardGeneric("plotSNPpeakPairs")
+  })
 
 #' @export
 setGeneric("geneExpressionTMP",function(object, meanFragmentLength = 150, normalize = T){
