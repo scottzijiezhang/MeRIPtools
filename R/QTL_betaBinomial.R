@@ -147,7 +147,6 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
   if( AdjIPeffi ){ variables <- paste(variables, "offset(K_IPe)", sep  = " +") }
   if( AdjustGC ){ variables <- paste(variables, "offset(Fj)", sep = " +") } 
   if(! is.null(Covariates)  ){ 
-    colnames(Covariates)
     variables <-  paste(variables, paste(colnames(Covariates),collapse = " + "), sep = "+")
   }
   if( PCsToInclude > 0 ){
