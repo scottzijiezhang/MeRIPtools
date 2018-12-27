@@ -24,15 +24,16 @@ plotPCA.DESeq2 <- function(data,group = NULL, returnPC = FALSE){
 #' @title plotPCAfromMatrix
 #' @param m The matrix of count data
 #' @param group The factor levels to color the samples. Should be the save number as the # of matrix columns
+#' @param standardize Logic parameter indicating whether to standardize the count data to have unit variance. The default is TRUE. 
 #' @param loglink Logic parameter determine whether to take log of the metrix data. Default is TRUE. If your input matrix is at log scale, use FALSE.
 #' @export
-plotPCAfromMatrix <- function(m,group,loglink = TRUE){
+plotPCAfromMatrix <- function(m,group, standardize = TRUE,loglink = TRUE){
   if(loglink){
     mm <- log(m + 1)
   }else{
     mm <- m
   }
-  pc <- prcomp(t(mm))
+  pc <- prcomp(t(mm), scale. = standardize)
   pca.df <- as.data.frame(pc$x)
   vars <- apply(pca.df ,2, var)
   props <- 100*(vars / sum(vars) )

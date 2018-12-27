@@ -56,7 +56,7 @@ setGeneric("normalizeLibrary",function(object, ...){
 })
 
 #' @export
-setGeneric("adjustExprLevel",function(object, ...){
+setGeneric("adjustExprLevel",function(object,  adjustBy = "geneSum" ){
   standardGeneric("adjustExprLevel")
 })
 
@@ -66,7 +66,7 @@ setGeneric("geneExpression",function(object, ...){
 })
 
 #' @export
-setGeneric("consistentPeak",function(object, ...){
+setGeneric("consistentPeak",function(object, samplenames = NULL, joint_threshold = NA, threads = 1){
   standardGeneric("consistentPeak")
 })
 
@@ -129,9 +129,10 @@ setGeneric("select" ,function(object, samples, keepData=TRUE){
 setGeneric("results", function(object){standardGeneric("results")})
 
 #' @export
-setGeneric("betaBin",function(object){standardGeneric("betaBin")})
+setGeneric("BetaBinTest",function(object,  AdjIPeffi = TRUE ,  AdjustGC = FALSE, BSgenome = BSgenome.Hsapiens.UCSC.hg38){standardGeneric("BetaBinTest")})
 
-
+#' @export
+setGeneric("annotatePeak",function(object, threads = 1){standardGeneric("annotatePeak")})
 
 
 

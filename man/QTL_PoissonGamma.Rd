@@ -4,8 +4,9 @@
 \alias{QTL_PoissonGamma}
 \title{QTL_PoissonGamma}
 \usage{
-QTL_PoissonGamma(pheno, vcf_file, peak_bed, testWindow = 1e+05, Chromosome,
-  Range = NULL, Covariates = NULL, maxPsi = 100, thread = 1)
+QTL_PoissonGamma(pheno, vcf_file, peak_bed, testWindow = 1e+05,
+  Chromosome, Range = NULL, Covariates = NULL, maxPsi = 100,
+  thread = 1)
 }
 \arguments{
 \item{pheno}{The phenotype data matrix. Needs to be IP read count that has been normalized for expression level.}
@@ -23,4 +24,7 @@ QTL_PoissonGamma(pheno, vcf_file, peak_bed, testWindow = 1e+05, Chromosome,
 \item{Covariates}{The matrix for covariates to be included in the test.}
 
 \item{maxPsi}{The max estimation for the random effect parameter Psi.}
+}
+\description{
+QTL_PoissonGamma
 }

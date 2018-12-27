@@ -10,7 +10,7 @@ jointPeakCount(MeRIPdata)
 \item{MeRIPdata}{The data list as output of callPeakFisher()}
 }
 \value{
-Returns the MeRIPdata with joint peak read count for input and IP stored.
+Returns the MeRIP object with joint peak read count for Input and IP stored.
 }
 \description{
 Extract read count of joint peaks for each sample and store the read counts in the MeRIP.Peak object.

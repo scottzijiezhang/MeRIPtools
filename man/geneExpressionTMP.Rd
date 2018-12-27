@@ -5,8 +5,8 @@
 \alias{geneExpressionTMP}
 \title{getTPM from geneSum}
 \usage{
-\S4method{geneExpressionTMP}{MeRIP.Peak}(object, meanFragmentLength = 150,
-  normalize = T)
+\S4method{geneExpressionTMP}{MeRIP.Peak}(object,
+  meanFragmentLength = 150, normalize = T)
 }
 \arguments{
 \item{object}{The MeRIP.Peak object}
@@ -14,4 +14,7 @@
 \item{meanFragmentLength}{The mean length of RNA fragment (insert of RNA library). Default is 150bp.}
 
 \item{normalize}{Logical indicating whether normalized TPM or raw TPM should be returned.}
+}
+\description{
+getTPM from geneSum
 }

@@ -2,13 +2,13 @@ Package: MeRIPtools
 Type: Package
 Title: Analyze MeRIP-seq data and QTL calling
 Version: 0.1.0
-Author: Zijie Zhang, Kaixuan Luo ,Xin He
+Author: Zijie Zhang, Kaixuan Luo , Chuan He, Xin He
 Maintainer: The package maintainer <scottzjzhang@uchicago.edu>
-Description: ThMeRIPtools is a comprehensive toolset for analyzing MeRIP-seq (e.g. m6A-seq) and data visualization. 
+Description: The MeRIPtools is a comprehensive toolset for analyzing MeRIP-seq (e.g. m6A-seq) and data visualization. 
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Depends: GenomicFeatures, Rsamtools, ggplot2, doParallel, foreach,grid,rtracklayer,GenomicAlignments,reshape2,Rcpp,RcppArmadillo
-RoxygenNote: 6.0.1
+Depends: GenomicFeatures, Rsamtools, ggplot2, doParallel, foreach,grid,rtracklayer,GenomicAlignments,reshape2,Rcpp,RcppArmadillo, qvalue
+RoxygenNote: 6.1.1
 LinkingTo: Rcpp, RcppArmadillo
 Imports: Guitar, stringr,vcfR,gamlss, broom, DESeq2

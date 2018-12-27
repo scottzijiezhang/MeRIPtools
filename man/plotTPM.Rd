@@ -15,3 +15,6 @@ plotTPM(TPM, geneName, group, logCount = FALSE, facet_grid = FALSE)
 
 \item{logCount}{where to plot count at log scale}
 }
+\description{
+plotTPM
+}

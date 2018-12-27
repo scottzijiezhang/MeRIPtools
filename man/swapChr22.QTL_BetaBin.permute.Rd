@@ -5,9 +5,9 @@
 \title{swapChr22.QTL_BetaBin.permute}
 \usage{
 swapChr22.QTL_BetaBin.permute(MeRIPdata, vcf_file,
-  BSgenome = BSgenome.Hsapiens.UCSC.hg19, testWindow = 1e+05, Chromosome,
-  Range = NULL, Covariates = NULL, AdjustGC = TRUE, AdjIPeffi = TRUE,
-  PCsToInclude = 0, thread = 1, Nround = 1)
+  BSgenome = BSgenome.Hsapiens.UCSC.hg19, testWindow = 1e+05,
+  Chromosome, Range = NULL, Covariates = NULL, AdjustGC = TRUE,
+  AdjIPeffi = TRUE, PCsToInclude = 0, thread = 1, Nround = 1)
 }
 \arguments{
 \item{MeRIPdata}{The MeRIP.Peak object}
@@ -23,4 +23,7 @@ swapChr22.QTL_BetaBin.permute(MeRIPdata, vcf_file,
 \item{Range}{The position range on a chromosome to test.}
 
 \item{Covariates}{The matrix for covariates to be included in the test.}
+}
+\description{
+swapChr22.QTL_BetaBin.permute
 }

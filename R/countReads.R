@@ -2,7 +2,8 @@
 ### The function requires for each sample, input and IP named for the same prefix (filename). input and IP each have postfix of input.bam/m6A.bam
 #### If multiple IP sample used a shared input library, sharedInput can be specified.
 #' @title countReads
-#' @param samplenames The names of each sample (prefix for bam files)
+#' @description This is the very first function in MeRIP-seq data analysis that initianize a `MeRIP` object. This function takes BAM files of Input/IP library of each samples as input and use given GTF file as gene annotation to divide genes into consecutive bins of user defined size.  
+#' @param samplenames The names of each sample (prefix for bam files).
 #' @param gtf The gtf format gene annotation file
 #' @param fragmentLength The RNA fragment length (insert size of the library).
 #' @param modification The modification used to name the BAM files.
@@ -49,9 +50,6 @@ countReads<-function(
       indexBam(IPfile)
     }
   }
-
-  ## create output directory
-  dir.create(outputDir, showWarnings = FALSE, recursive = TRUE)
 
   ## This step removes ambiguous annotations and returns gene model
   cat("Reading gtf file to obtain gene model\nFilter out ambiguous model...\n")
@@ -141,6 +139,8 @@ countReads<-function(
 
   data.out <- MeRIP(reads = reads, binSize = binSize, geneModel = geneGRList, bamPath.input = bamPath.input, bamPath.ip = bamPath.IP, samplenames = samplenames)
   if(saveOutput){
+    ## create output directory
+    dir.create(outputDir, showWarnings = FALSE, recursive = TRUE)
     saveRDS(data.out,paste0(outputDir,"/MeRIP_readCounts.RDS"))
   }
 

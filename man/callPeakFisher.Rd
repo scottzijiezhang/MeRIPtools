@@ -18,3 +18,6 @@ callPeakFisher(MeRIP, min_counts = 15, peak_cutoff_fdr = 0.05,
 
 \item{threads}{The number of threads to use. Default uses 1 threads.}
 }
+\description{
+callPeakFisher
+}

@@ -13,3 +13,6 @@ qqplot.pvalue(x, pointSize = 1, legendSize = 4)
 
 \item{legendSize}{The size of points in the legend}
 }
+\description{
+qqplot.pvalue
+}

@@ -5,8 +5,9 @@
 \title{plotGeneCoverage}
 \usage{
 plotGeneCoverage(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT, X, geneName,
-  geneModel, libraryType = "opposite", center = mean, GTF, ZoomIn = NULL,
-  adjustExprLevel = FALSE, plotSNP = NULL)
+  geneModel, libraryType = "opposite", center = mean, GTF,
+  ZoomIn = NULL, adjustExprLevel = FALSE,
+  adjustExpr_peak_range = NULL, plotSNP = NULL)
 }
 \arguments{
 \item{size.IP}{The size factor for IP libraries}
@@ -28,4 +29,7 @@ plotGeneCoverage(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT, X, geneName,
 \item{IP_BAM}{The bam files for IP samples}
 
 \item{INPUT_BAM}{The bam files for INPUT samples}
+}
+\description{
+plotGeneCoverage
 }

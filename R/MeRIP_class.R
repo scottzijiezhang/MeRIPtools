@@ -71,21 +71,11 @@ MeRIP.Peak <- setClass("MeRIP.Peak",representation( peakCallResult = "matrix",
 
 #' @export
 setMethod("show",signature("MeRIP"), function(object){
-  cat(paste0("MeRIP dataset of ",length(object@samplenames)," samples.\n"))
-  cat("The total read count for Input and IP samples are (Million reads):\n")
-  totoReads <- rbind("Input" = round(colSums(object@reads[,1:length(object@samplenames)])/1e6, digits = 2),
-                     "IP" = round(colSums(object@reads[,-c(1:length(object@samplenames))])/1e6, digits = 2))
-  colnames(totoReads) <- object@samplenames
-  print(totoReads) 
+ summary(object)
 })
 #' @export
 setMethod("show",signature("MeRIP.Peak"), function(object){
-  cat(paste0("MeRIP.Peak dataset of ",length(object@samplenames)," samples.\n"))
-  cat("The total read count for Input and IP samples are (Million reads):\n")
-  totoReads <- rbind("Input" = round(colSums(object@reads[,1:length(object@samplenames)])/1e6, digits = 2),
-                     "IP" = round(colSums(object@reads[,-c(1:length(object@samplenames))])/1e6, digits = 2))
-  colnames(totoReads) <- object@samplenames
-  print(totoReads) 
+  summary(object)
 })
 
 

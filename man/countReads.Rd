@@ -10,7 +10,7 @@ countReads(samplenames, gtf, fragmentLength = 150, bamFolder,
   saveOutput = T)
 }
 \arguments{
-\item{samplenames}{The names of each sample (prefix for bam files)}
+\item{samplenames}{The names of each sample (prefix for bam files).}
 
 \item{gtf}{The gtf format gene annotation file}
 
@@ -31,4 +31,7 @@ countReads(samplenames, gtf, fragmentLength = 150, bamFolder,
 \item{threads}{The number of threads to use for hyperthreading}
 
 \item{saveOutput}{Logical option indicating whether to save output as an RDS file.}
+}
+\description{
+This is the very first function in MeRIP-seq data analysis that initianize a `MeRIP` object. This function takes BAM files of Input/IP library of each samples as input and use given GTF file as gene annotation to divide genes into consecutive bins of user defined size.
 }

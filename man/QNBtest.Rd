@@ -10,3 +10,6 @@
 \arguments{
 \item{object}{The MeRIP.Peak object}
 }
+\description{
+Wraper function to use QNB package to test for differential peaks.
+}

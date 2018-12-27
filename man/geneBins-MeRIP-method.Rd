@@ -3,10 +3,16 @@
 \docType{methods}
 \name{geneBins,MeRIP-method}
 \alias{geneBins,MeRIP-method}
-\title{extract geneBins}
+\title{geneBins}
 \usage{
 \S4method{geneBins}{MeRIP}(object)
 }
+\arguments{
+\item{object}{The MeRIP object}
+}
+\value{
+data.frame
+}
 \description{
-geneBins extractor
+Extract the data.frame that maps the consecutive bins to genes.
 }

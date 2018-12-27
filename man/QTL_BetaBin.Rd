@@ -6,7 +6,8 @@
 \usage{
 QTL_BetaBin(MeRIPdata, vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,
   testWindow = 1e+05, Chromosome, Range = NULL, Covariates = NULL,
-  AdjustGC = TRUE, AdjIPeffi = TRUE, PCsToInclude = 0, thread = 1)
+  AdjustGC = TRUE, AdjIPeffi = TRUE, PCsToInclude = 0,
+  normalizeGenotype = FALSE, thread = 1)
 }
 \arguments{
 \item{MeRIPdata}{The MeRIP.Peak object}
@@ -23,7 +24,12 @@ QTL_BetaBin(MeRIPdata, vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,
 
 \item{Covariates}{The matrix for covariates to be included in the test.}
 
-\item{AdjustGC}{Logic. Chose whether explicitly adjust GC bias.}
+\item{AdjustGC}{Logic. Choose whether explicitly adjust GC bias.}
 
-\item{AdjIPeffi}{Logic. Chose whether explicitly adjust overall IP efficiency}
+\item{AdjIPeffi}{Logic. Choose whether explicitly adjust overall IP efficiency}
+
+\item{normalizeGenotype}{Logic. Choose whether genotype is normalized to mean = 0, var = 1 before regression.}
+}
+\description{
+QTL_BetaBin
 }

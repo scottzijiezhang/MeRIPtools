@@ -15,3 +15,6 @@
 \value{
 object The MeRIP.Peak object now with IP-count adjusted for expression level.
 }
+\description{
+adjustExprLevel
+}

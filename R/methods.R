@@ -177,12 +177,18 @@ callPeakBinomial <- function(MeRIP, min_counts = 15, peak_cutoff_fdr = 0.05 , pe
 
 ################################################################################################################################################################
 #' @export
+#' @title IP.files
+#' @description Extract path to IP BAM files.
+#' @param object The MeRIP object
 #' @rdname IP.files
 setMethod("IP.files", signature("MeRIP"), function(object){
   object@bamPath.ip
 })
 
 #' @export
+#' @title Input.files
+#' @param object The MeRIP object
+#' @description Extract path to INPUT BAM files. 
 #' @rdname Input.files
 setMethod("Input.files", signature("MeRIP"), function(object){
   object@bamPath.input
@@ -190,6 +196,9 @@ setMethod("Input.files", signature("MeRIP"), function(object){
 
 #' @export
 #' @rdname counts
+#' @title counts
+#' @description Extract all (Input + IP) read count of the MeRIP object.
+#' @param object The MeRIP object
 setMethod("counts", signature("MeRIP.Peak"), function(object){
   object@reads
 })
@@ -199,7 +208,8 @@ setMethod("counts", signature("MeRIP.Peak"), function(object){
 
 #' @title reportJointPeak
 #' @param MeRIPdata The MeRIP.Peak object containing peak calling result
-#' @param joint_threshold Define the number of sample required to have consistent peak in a locus to call joint peak.
+#' @param joint_threshold Define the number of sample required to have consistent peak in a locus to call this bin a joint peak.
+#' @param threads The number of threads to use.
 #' @return MeRIP.Peak object with jointPeaks data
 #' @export
 reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
@@ -440,7 +450,7 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
 #' @title jointPeakCount
 #' @description Extract read count of joint peaks for each sample and store the read counts in the MeRIP.Peak object. 
 #' @param MeRIPdata The data list as output of callPeakFisher()
-#' @return Returns the MeRIPdata with joint peak read count for input and IP stored.
+#' @return Returns the MeRIP object with joint peak read count for Input and IP stored.
 #' @export
 jointPeakCount <- function(MeRIPdata ){
   if( is( MeRIPdata,"MeRIP.Peak") ){
@@ -482,8 +492,10 @@ jointPeakCount <- function(MeRIPdata ){
 }
 
 #' @export
-#' @title extract geneBins
-#' @description geneBins extractor
+#' @title geneBins
+#' @description Extract the data.frame that maps the consecutive bins to genes. 
+#' @param object The MeRIP object
+#' @return data.frame 
 setMethod("geneBins", signature("MeRIP"), function(object){
   if( nrow(object@geneBins) > 0 ){
     return(object@geneBins)
@@ -594,6 +606,7 @@ setMethod("adjustExprLevel", signature("MeRIP.Peak"), function(object, adjustBy 
 #' @param object The MeRIP.Peak object contain peak calling result.
 #' @param samplenames The samplenames to be reported for consistent peaks.
 #' @param joint_threshold Define the number of sample required to have consistent peak in a locus to call consistent peak in a group.
+#' @param threads The number of threads to use. 
 #' @return Peak consistent across specified samples at specified joint_threshod. If joint_threshold not specified, report consistent peaks across all samples specified. If no sample specified, report consistent peak across all samples.
 #' @export
 setMethod("consistentPeak", signature("MeRIP.Peak"), function(object, samplenames = NULL, joint_threshold = NA, threads = 1){
@@ -736,36 +749,6 @@ setMethod("consistentPeak", signature("MeRIP.Peak"), function(object, samplename
 
 
 ########################################################################################################################################################
-#' @title Wraper function to use QNB package to test for differential peaks.
-#' @description 
-#' @name QNBtest
-#' @param object The MeRIP.Peak object
-#' @import QNB
-#' @export
-setMethod("QNBtest", signature("MeRIP.Peak"), function(object){
-  if( nrow(object@variate) != length(object@samplenames)  ){
-    stop(" Predictor variable lengthen needs to match the sample size! If you haven't set the predictor variable, please set it by variable(object) <- data.frmae(group = c(...)) ")
-  }else if(length(unique(variable(object)[,1])) > 2 ){
-    stop("The levels of predictor variable needs to be two!")
-  }
-  
-  Ctl_id <- which( object@variate[,1] %in%  unique(object@variate[,1])[1] )
-  Treat_id <-which( object@variate[,1] %in%  unique(object@variate[,1])[2] )
-  QNB.res <- QNB::qnbtest(control_ip = object@jointPeak_ip[,Ctl_id],
-                          treated_ip = object@jointPeak_ip[,Treat_id],
-                          control_input = object@jointPeak_input[,Ctl_id],
-                          treated_input = object@jointPeak_input[,Treat_id],plot.dispersion = FALSE)
-  colnames(QNB.res) <- c("p.treated","p.control", "log2.RR" ,"beta",  "p_value", "q","padj" )
-  
-  object@test.est <- QNB.res
-  object@test.method <- "QNB test"
-  cat("The test was performed by R package QNB, please cite the QNB paper:\nLian Liu (2017). QNB: Differential RNA Methylation Analysis for Count-Based Small-Sample Sequencing Data with a Quad-Negative Binomial
-  Model\nif you used this result in you publication!")
-  return(object)
-})
-
-
-######################################################################################################################################
 
 #' @title plot distribution of peaks on gene annotation
 #' @name peakDistribution
@@ -1104,11 +1087,43 @@ plotTPM <- function(TPM,geneName,group,logCount = FALSE, facet_grid = FALSE){
 }
 
 ##########################################################################################################################################
-
-#' @title Perform inferential test using Poisson Random effect model in RADAR 
+#' @title Wraper function to use QNB package to test for differential peaks.
 #' @description 
+#' @name QNBtest
+#' @param object The MeRIP.Peak object
+#' @import QNB
+#' @export
+setMethod("QNBtest", signature("MeRIP.Peak"), function(object){
+  if( nrow(object@variate) != length(object@samplenames)  ){
+    stop(" Predictor variable lengthen needs to match the sample size! If you haven't set the predictor variable, please set it by variable(object) <- data.frmae(group = c(...)) ")
+  }else if(length(unique(variable(object)[,1])) > 2 ){
+    stop("The levels of predictor variable needs to be two!")
+  }
+  
+  Ctl_id <- which( object@variate[,1] %in%  unique(object@variate[,1])[1] )
+  Treat_id <-which( object@variate[,1] %in%  unique(object@variate[,1])[2] )
+  QNB.res <- QNB::qnbtest(control_ip = extractIP(object)[,Ctl_id],
+                          treated_ip = extractIP(object)[,Treat_id],
+                          control_input = extractInput(object)[,Ctl_id],
+                          treated_input = extractInput(object)[,Treat_id],plot.dispersion = FALSE)
+  colnames(QNB.res) <- c("p.treated","p.control", "log2.RR" ,"beta",  "p_value", "q","padj" )
+  
+  object@test.est <- as.matrix(QNB.res)
+  object@test.method <- "QNB test"
+  cat("The test was performed by R package QNB, please cite the QNB paper:\nLian Liu (2017). QNB: Differential RNA Methylation Analysis for Count-Based Small-Sample Sequencing Data with a Quad-Negative Binomial
+  Model\nif you used this result in you publication!")
+  return(object)
+})
+
+
+######################################################################################################################################
+
+#' @title  RADARtest
+#' @description Perform inferential test using Poisson Random effect model in RADAR package
 #' @name RADARtest
 #' @param object The MeRIP.Peak object
+#' @param exclude A vector to specify sample names to be excluded in the test.
+#' @param maxPsi The max random effect parameter Psi
 #' @export
 setMethod("RADARtest", signature("MeRIP.Peak"), function(object, exclude = NULL, maxPsi = 100){
   
@@ -1184,7 +1199,8 @@ setMethod("RADARtest", signature("MeRIP.Peak"), function(object, exclude = NULL,
     colnames(all.est) <- gsub("3","",colnames(all.est))
   }
   
-  fdr <- p.adjust(all.est[,"p_value"],method = "fdr" )
+  #fdr <- p.adjust(all.est[,"p_value"],method = "fdr" )
+  fdr <- qvalue::qvalue(all.est[,"p_value"])$qvalue
   
   object@test.est <- cbind(all.est,fdr)
   object@test.method <- "PoissonGamma test"
@@ -1192,7 +1208,150 @@ setMethod("RADARtest", signature("MeRIP.Peak"), function(object, exclude = NULL,
   return(object)
 })
 
-
+##################################################################################################################################
+#' @title  BetaBinTest
+#' @description Perform inferential test using beta-binomial regression model.
+#' @name BetaBinTest
+#' @param object The MeRIP.Peak object
+#' @param AdjIPeffi Logic option determining whether to adjust overall IP efficiency, default is TRUE.
+#' @param AdjustGC Logic option determining whether to adjust GC bias in each bins, default is FALSE.
+#' @param BSgenome The BSgenome object that will used for calculating GC content for each bin if AdjustGC = TRUE.
+#' @export
+#' @import gamlss
+#' @import gamlss.dist
+#' @import broom
+#' @import stringr
+#' @import BSgenome
+setMethod("BetaBinTest", signature("MeRIP.Peak"), function(object, AdjIPeffi = TRUE ,  AdjustGC = FALSE, BSgenome = BSgenome.Hsapiens.UCSC.hg38 ){
+  
+  if( nrow(object@variate) != length(object@samplenames)  ){
+    stop(" Predictor variable lengthen needs to match the sample size! If you haven't set the predictor variable, please set it by variable(object) <- data.frmae(group = c(...)) ")
+  }else if(length(unique(variable(object)[,1])) > 2 & !is.numeric(variable(object)[,1]) ){
+    stop("The levels of predictor variable needs to be two!")
+  }
+  
+  if( AdjustGC & is(BSgenome,"BSgenome") ){
+    cat(paste0("Will adjust GC bias, GC content is estimated using the input genome: ", unique(genome(BSgenome)),"\nPlease make sure this is the correct genome assembly!\n" ) )
+  }else if(AdjustGC & !is(BSgenome,"BSgenome")){
+    stop("If adjusting GC, a BSgenome object of corresponding genome assembly must be provided to extract the GC fraction!")
+  }
+  
+  ### Preprocess
+  ##fitler out peaks with zero count
+  object <- filter(object, !apply(extractInput(object), 1, function(x) any(x == 0 )) )
+  cat("Beta-binomial test requires non-zero read counts. Peaks with zero read count in input data have been removed.\n")
+  
+  T0 <- colSums(counts(object)[,1:length(object@samplenames)] )
+  T1 <- colSums(counts(object)[,(length(object@samplenames)+1) : (2*length(object@samplenames)) ] )
+  
+  ##filter out peaks with OR < 1
+  enrichFlag <- apply( t( t(extractIP(object))/T1 )/ t( t( extractInput(object) )/T0 ),1,function(x){sum(x>1)> object@jointPeak_threshold})
+  MeRIPdata <-  filter(object, enrichFlag )
+  
+  ## estimate IP efficiency
+  OR <- t( apply(extractIP(MeRIPdata),1,.noZero)/T1 )/ t( t( extractInput(MeRIPdata) )/T0 )
+  colnames(OR) <- MeRIPdata@samplenames
+  OR.id <- which( rowMeans(OR) < quantile( rowMeans(OR), 0.95 ) & rowMeans(OR) > quantile( rowMeans(OR), 0.1) )# remove two tails
+  K_IPe <- log( apply(OR[OR.id,], 2, function(x){coef(lm(x~rowMeans(OR)[OR.id]) )[2]}) ) # fit linear moedel to obtain the IP efficiency offset
+  
+  if(AdjustGC){
+    cat("Computing GC content for peaks\n")
+    ## GC content correction
+    peak.gr <- .peakToGRangesList( jointPeak(MeRIPdata))
+    cat("...")
+    
+    registerDoParallel( thread )
+    peakSeq <- foreach( i = 1:length(peak.gr), .combine = c )%dopar%{
+      paste( getSeq( BSgenome , peak.gr[[i]] ,as.character =T ) , collapse = "")
+    }
+    peakGC <- sapply( peakSeq, function(x){ sum( str_count(x, c("G","g","C","c"))  )/nchar(x) } )
+    
+    cat("...")
+    
+    peakGC_l <- round(peakGC,digits = 2)
+    peakGC_l[which(peakGC_l<0.2)] <-median(peakGC_l[which(peakGC_l<0.2)] ) # combine some bins at low GC due to low number of peaks
+    peakGC_l[which(peakGC_l>0.84)] <-median(peakGC_l[which(peakGC_l>0.84)] ) # combine some bins at high GC due to low number of peaks
+    l <- sort(unique(peakGC_l))
+    if(AdjIPeffi){y <- (log( OR ) - K_IPe)}else{y <-  log(OR) }
+    colnames(y) <- MeRIPdata@samplenames
+    b.l <- tapply(rowMeans( y ), peakGC_l ,  median) 
+    bil <- apply( y, 2, tapply, peakGC_l, median )
+    bi. <- apply(  y , 2, median )
+    b.. <- median(  y )
+    Fil <- as.data.frame( as.matrix(bil) - as.vector(b.l) ) - ( bi. - b.. )
+    Fij <- foreach( ii = 1:length(MeRIPdata@samplenames), .combine = cbind)%dopar%{
+      GC_fit <- lm(Fil[,ii] ~ poly(l,4) )
+      predict(GC_fit, newdata = data.frame(l = peakGC) )
+    }
+    colnames(Fij) <- MeRIPdata@samplenames
+    cat("...\n")
+  }
+  
+  Y1 <- extractIP(object)
+  Y0 <- extractInput(object)
+  
+  ## convert predictor variable if it is not numeric
+  if( is.numeric(variable(object)[,1]) ){
+    X <- variable(object)
+  }else{
+    tmp <- rafalib::as.fumeric(as.character(variable(object)[,1])) - 1
+    names(tmp) <- as.character(variable(object)[,1])
+    cat("The predictor variable has been converted:\n")
+    print(tmp)
+    X <-  variable(object)
+    X[,1] <-rafalib::as.fumeric(as.character(variable(object)[,1])) - 1 # convert categorical variable into numerical variable.
+  }
+  
+  ## ditermine study design according to parameters
+  variables <-  "offset(log(T1/T0))"
+  if( AdjIPeffi ){ variables <- paste(variables, "offset(K_IPe)", sep  = " +") }
+  if( AdjustGC ){ variables <- paste(variables, "offset(Fj)", sep = " +") } 
+  
+  variables <-  paste(variables, paste(colnames(X),collapse = " + "), sep = "+")
+ 
+  design <- formula( paste0("cbind(Y1i , Y0i) ~" , variables) )
+  
+  cat(paste0("Start beta-binomial regression for ",length(peak_bed.gr)," peaks...\n"))
+  ## test each peak
+  startTime <- Sys.time()
+  registerDoParallel(thread)
+  testResult <- foreach( i = 1:nrow(Y1), .combine = rbind  )%dopar% {
+    ## prepare data for fitting
+    if(AdjustGC){
+      Fj <- Fij[i,]
+      fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe, Fj )
+    }else{
+      fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe )
+    }
+    fit_data <- cbind(fit_data, as.data.frame(X) )
+    ## fit the data
+    fit <- try( gamlss( design ,data = fit_data , family = BB(mu.link = "logit")) )
+    ## collect regression result
+    if(class(fit)[1]!= "try-error"){
+      est <- tidy(fit)
+      tmp_est <- data.frame(beta =  est[est$term == "G","estimate"],
+                                 std.err = est[est$term == "G","std.error"],
+                                 pvalue = est[est$term == "G","p.value"], 
+                                 theta = 1/exp(est[est$parameter == "sigma","estimate"]),
+                                 p.theta = est[est$parameter == "sigma","p.value"] ) 
+    }else{
+      tmp_est <- data.frame(beta = NA, std.err = NA,  pvalue =NA,theta = NA, p.theta = NA ) 
+    }
+    ## report summary statistics
+    tmp_est
+  }
+  rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
+  endTime <- Sys.time()
+  cat(paste("Time used to test association: ",round(difftime(endTime, startTime, units = "mins"),digits = 1)," mins. \n"))
+  
+  fdr <- qvalue::qvalue(testResult$pvalue)$qvalue
+  
+  object@test.est <- cbind(testResult,fdr)
+  object@test.method <- "Beta-binomial test"
+  cat("\n")
+  return(object)
+  
+})
 ##########################################################################################################################################
 
 #' @export
@@ -1484,10 +1643,123 @@ MetaGene <- function(MeRIP.Peak){
     cat("Using functions from R package Guitar to plot peak distribution on meta gene...\n")
   }
   
-  plotMetaGene(jointPeak(MeRIP.Peak), MeRIP.Peak@gtf )
+  plotMetaGene(jointPeak(MeRIP.Peak)[,1:12], MeRIP.Peak@gtf )
 }
 
   
+#############################################################################################################################
+
+## helper function
+extract_gtf_anno <- function(txdb){
+  ## extract mRNAs
+  exons <- exonsBy(txdb, "tx",use.names=T)
+  cds <- cdsBy(txdb, by = "tx",use.names=TRUE)
+  utr5 <- fiveUTRsByTranscript(txdb, use.names=TRUE)
+  utr3 <- threeUTRsByTranscript(txdb, use.names=TRUE)
+  name_utr5 <- names(utr5)
+  name_utr3 <- names(utr3)
+  name_cds <- names(cds)
+  name_mRNA <- intersect(intersect(name_utr5,name_utr3),name_cds)
+  
+  ## extract ncRNAs
+  name_ncRNA <- setdiff(names(exons),name_mRNA)
+  ncRNA.gr <- unlist( exons[name_ncRNA] )
+  ncRNA.gr <- granges(ncRNA.gr,use.mcols = FALSE)
+  ncRNA.gr$anno_class <-"ncRNA"
+  
+  ## CDS
+  cds.gr <- granges(unlist(cds), use.mcols = FALSE)
+  cds.gr$anno_class <- "coding"
+  
+  ## 5' UTRs
+  fiveUTRs.gr <- granges(unlist(utr5), use.mcols = FALSE)
+  fiveUTRs.gr$anno_class <- "fiveUTR"
+  
+  ## 3' UTRs
+  threeUTRs.gr <- granges(unlist(utr3), use.mcols = FALSE)
+  threeUTRs.gr$anno_class <- "threeUTR"
+  
+  anno.gr <- c(cds.gr, fiveUTRs.gr, threeUTRs.gr)
+  
+  ## introns
+  introns.gr <- unlist(intronsByTranscript(txdb))
+  introns.gr <- granges(introns.gr, use.mcols = FALSE)
+  introns.gr$anno_class <- "intron"
+  
+  exons.gr <- exonsBy(txdb, "gene")
+  
+  ## intergenic regions
+  intergenic.gr <- gaps(unlist(range(exons.gr)))
+  intergenic.gr$anno_class <- "intergenic"
+  
+  anno.gr <- c(cds.gr, fiveUTRs.gr, threeUTRs.gr, introns.gr, intergenic.gr,ncRNA.gr)
+  
+  return(anno.gr)
+}
+
+#' @title annotatePeak
+#' @param MeRIP.Peak The MeRIP.Peak object
+#' @export
+setMethod("annotatePeak", signature("MeRIP.Peak"), function(object, threads){
+  if( nrow(object@jointPeak)>0 ){
+    stop("Jointpeak has not been reported yet, run object <- reportJointPeak(object, joint_threshold = ) first to report jointPeaks!")
+  }else if(nrow(object@jointPeaks)> 1){
+    
+    peak_results <- jointPeak(object)[,1:12]
+    
+    txdb <- makeTxDbFromGFF(file = object@gtf,format = "gtf")
+    
+    peak_results.gr <- makeGRangesFromDataFrame(peak_results, ignore.strand = F,
+                                                seqnames.field = "chr", start.field = "chromStart", end.field = "chromStart",
+                                                keep.extra.columns = F)
+    
+    anno.gr <- extract_gtf_anno(txdb)
+    
+    start_time <- Sys.time()
+    ## register cluster for hyperthread computing
+    doParallel::registerDoParallel(cores=threads )
+    cat(paste("Hyper-thread registered:",getDoParRegistered(),"\n"))
+    cat(paste("Using",getDoParWorkers(),"thread(s) to annotate the peaks...\n"))
+    peak_anno_all <- foreach(i = 1:length(peak_results.gr) , .combine = rbind ) %dopar% {
+      
+      anno_class <- anno.gr[subjectHits(findOverlaps(query = peak_results.gr[i], subject = anno.gr, ignore.strand = F))]$anno_class
+      peak_anno <- unique(as.character(anno_class))
+      
+      if(length(peak_anno) == 0){
+        peak_anno_report <- NA
+      }else{
+        
+        if("coding" %in% peak_anno){
+          peak_anno_report <- "CDS"
+        }else if("fiveUTR" %in% peak_anno && "threeUTR" %in% peak_anno){
+          peak_anno_report <- "fiveUTR&threeUTR"
+        }else if("fiveUTR" %in% peak_anno){
+          peak_anno_report <- "fiveUTR"
+        }else if("threeUTR" %in% peak_anno){
+          peak_anno_report <- "threeUTR"
+        }else if("intron" %in% peak_anno){
+          peak_anno_report <- "intron"
+        }else if("intergenic" %in% peak_anno){
+          peak_anno_report <- "intergenic"
+        }else{
+          peak_anno_report <- paste(peak_anno, collapse = ",")
+        }
+      }
+      peak_anno_report
+    }
+    rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
+    end_time <- Sys.time()
+    cat(paste("time used to annotate peaks:",difftime(end_time, start_time, units = "mins"),"mins...\n"))
+    
+    peak_results$peak_anno <- factor(peak_anno_all, levels = c("CDS", "fiveUTR", "threeUTR", "intron", "intergenic","ncRNA"))
+    
+    print(summary(peak_results$peak_anno))
+    
+  }
+  object@jointPeak <- peak_results
+  return(object)
+})
+
   
   
   

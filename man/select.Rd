@@ -3,12 +3,11 @@
 \docType{methods}
 \name{select}
 \alias{select}
-\alias{select}
 \title{subset MeRIPdata}
 \usage{
 \S4method{select}{MeRIP}(object, samples)
 
-\S4method{select}{MeRIP.Peak}(object, samples)
+\S4method{select}{MeRIP.Peak}(object, samples, keepData = TRUE)
 }
 \arguments{
 \item{object}{The MeRIP object}

@@ -11,3 +11,6 @@ plotMetaGene(peak, gtf)
 
 \item{gtf}{The annotation file.}
 }
+\description{
+plotMetaGene
+}

@@ -16,3 +16,6 @@ plotGeneMonster(readsOut, geneName, libraryType = "opposite",
 
 \item{ZoomIn}{c(start,end) The coordinate to zoom in at the gene to be ploted.}
 }
+\description{
+plotGeneMonster
+}

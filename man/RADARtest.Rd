@@ -3,10 +3,17 @@
 \docType{methods}
 \name{RADARtest}
 \alias{RADARtest}
-\title{Perform inferential test using Poisson Random effect model in RADAR}
+\title{RADARtest}
 \usage{
 \S4method{RADARtest}{MeRIP.Peak}(object, exclude = NULL, maxPsi = 100)
 }
 \arguments{
 \item{object}{The MeRIP.Peak object}
+
+\item{exclude}{A vector to specify sample names to be excluded in the test.}
+
+\item{maxPsi}{The max random effect parameter Psi}
+}
+\description{
+Perform inferential test using Poisson Random effect model in RADAR package
 }

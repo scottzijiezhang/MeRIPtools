@@ -9,8 +9,13 @@ reportJointPeak(MeRIPdata, joint_threshold = 2, threads = 1)
 \arguments{
 \item{MeRIPdata}{The MeRIP.Peak object containing peak calling result}
 
-\item{joint_threshold}{Define the number of sample required to have consistent peak in a locus to call joint peak.}
+\item{joint_threshold}{Define the number of sample required to have consistent peak in a locus to call this bin a joint peak.}
+
+\item{threads}{The number of threads to use.}
 }
 \value{
 MeRIP.Peak object with jointPeaks data
+}
+\description{
+reportJointPeak
 }

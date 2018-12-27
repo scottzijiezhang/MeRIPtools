@@ -6,7 +6,8 @@
 \usage{
 QTL_BetaBin2(MeRIPdata, vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,
   testWindow = 1e+05, Chromosome, Range = NULL, Covariates = NULL,
-  AdjustGC = TRUE, PCsToInclude = 0, thread = 1)
+  AdjustGC = TRUE, PCsToInclude = 0, normalizeGenotype = FALSE,
+  thread = 1)
 }
 \arguments{
 \item{MeRIPdata}{The MeRIP.Peak object}
@@ -22,4 +23,11 @@ QTL_BetaBin2(MeRIPdata, vcf_file, BSgenome = BSgenome.Hsapiens.UCSC.hg19,
 \item{Range}{The position range on a chromosome to test.}
 
 \item{Covariates}{The matrix for covariates to be included in the test.}
+
+\item{AdjustGC}{Logic. Choose whether explicitly adjust GC bias.}
+
+\item{normalizeGenotype}{Logic. Choose whether genotype is normalized to mean = 0, var = 1 before regression.}
+}
+\description{
+Same as QTL_BetaBin except sizeFactor estimated by Median of ratio method was used to scale library size instead of total coverage.
 }

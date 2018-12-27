@@ -14,7 +14,12 @@
 \item{samplenames}{The samplenames to be reported for consistent peaks.}
 
 \item{joint_threshold}{Define the number of sample required to have consistent peak in a locus to call consistent peak in a group.}
+
+\item{threads}{The number of threads to use.}
 }
 \value{
 Peak consistent across specified samples at specified joint_threshod. If joint_threshold not specified, report consistent peaks across all samples specified. If no sample specified, report consistent peak across all samples.
+}
+\description{
+consistentPeak
 }

@@ -5,8 +5,9 @@
 \alias{plotGeneCov,MeRIP.Peak-method}
 \title{plotGeneCov}
 \usage{
-\S4method{plotGeneCov}{MeRIP.Peak}(object, geneName, libraryType = "opposite",
-  center = mean, ZoomIn = NULL, adjustExprLevel = F)
+\S4method{plotGeneCov}{MeRIP.Peak}(object, geneName,
+  libraryType = "opposite", center = mean, ZoomIn = NULL,
+  adjustExprLevel = F, adjustExpr_peak_range = NULL)
 }
 \arguments{
 \item{object}{The data list from countReads and other analysis.}
@@ -22,4 +23,7 @@
 \item{adjustExprLevel}{logical parameter. Specify whether normalize the two group so that they have similar expression level.}
 
 \item{GTF}{The GRanges object containing gtf annotation. Can obtain by rtracklayer::import("file.gtf", format= "gtf").}
+}
+\description{
+plotGeneCov
 }

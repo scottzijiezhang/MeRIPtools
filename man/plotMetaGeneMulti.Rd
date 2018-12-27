@@ -16,3 +16,6 @@ plotMetaGeneMulti(peakList, gtf, saveToPDFprefix = NA,
 
 \item{includeNeighborDNA}{Whether to include upstrean and downstream region in the meta gene.}
 }
+\description{
+plotMEtaGeneMulti A wrapper function for Guitar to plot meta gene plot of multiple samples overlaid on each other.
+}

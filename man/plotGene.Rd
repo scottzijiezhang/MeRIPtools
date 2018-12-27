@@ -24,3 +24,6 @@ plotGene(IP_BAM, INPUT_BAM, size.IP, size.INPUT, geneName, geneModel,
 
 \item{GTF}{gtf annotation as GRanges object. Can be obtained by GTF <- rtracklayer::import("xxx.gtf",format = "gtf")}
 }
+\description{
+old coverage plot function.
+}
