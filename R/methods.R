@@ -1384,17 +1384,19 @@ setMethod("variable<-", signature("MeRIP.Peak"), function(object ,value){
   object
 })
 
+#########################################################################################################################
+
 #' @title geneExpression
 #' @description Extract gene level expression (RNAseq) data in normalized read counts
 #' @param object The MeRIP object
 #' @import DESeq2
 #' @export
-setMethod("geneExpression", signature("MeRIP.Peak"), function(object ){
-  if(nrow(object@geneSum)> 0 ){
+setMethod("geneExpression", signature("MeRIP"), function(object ){
+  if(nrow(object@geneSum)> 1 ){
     return(object@geneSum)
   }else{
-    input <- object@reads[,1:length(object@samplenames)]
-    colnames(input) <- object@samplenames
+    input <- counts(object)[,1:length(object@samplenames)]
+    colnames(input) <- samplenames(object)
     geneBins <- geneBins(object)
     ## Get input geneSum (gene level quantification)
     geneSum <- NULL
@@ -1407,42 +1409,16 @@ setMethod("geneExpression", signature("MeRIP.Peak"), function(object ){
     
     size.input <- DESeq2::estimateSizeFactorsForMatrix(geneSum)
     
-    norm.jointPeak_input <-t( t(jointPeak_input) / size.input )
     geneSum.norm <- t ( t(geneSum)/size.input)
     return(geneSum.norm)
   }
 })
 
-##################################################################################################################################
-#' @title extractor for RNAseq data
-#' @name geneExpression
-#' @description Extract gene level expression (RNAseq) data in normalized read counts
-#' @param object The MeRIP object
-#' @import DESeq2
 #' @export
-setMethod("geneExpression", signature("MeRIP.Peak"), function(object ){
-  if(nrow(object@geneSum)> 0 ){
-    return(object@geneSum)
-  }else{
-    input <- object@reads[,1:length(object@samplenames)]
-    colnames(input) <- object@samplenames
-    geneBins <- geneBins(object)
-    ## Get input geneSum (gene level quantification)
-    geneSum <- NULL
-    for(i in 1:ncol(input) ){
-      y <- input[,i]
-      gene.sum <- tapply(y,geneBins$gene,sum)
-      geneSum <- cbind(geneSum,gene.sum)
-    }
-    colnames(geneSum) <- object@samplenames
-    
-    size.input <- DESeq2::estimateSizeFactorsForMatrix(geneSum)
-    
-    norm.jointPeak_input <-t( t(jointPeak_input) / size.input )
-    geneSum.norm <- t ( t(geneSum)/size.input)
-    return(geneSum.norm)
-  }
+setMethod("geneExpression", signature("MeRIP.Peak"), function(object){
+  callNextMethod()
 })
+
 
 #########################################################################################################################
 #' @export

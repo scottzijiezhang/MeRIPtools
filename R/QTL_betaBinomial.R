@@ -57,16 +57,26 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
   
   T0 <- colSums(counts(MeRIPdata)[,1:length(MeRIPdata@samplenames)] )
   T1 <- colSums(counts(MeRIPdata)[,(length(MeRIPdata@samplenames)+1) : (2*length(MeRIPdata@samplenames)) ] )
+  
   ##filter out peaks with OR < 1
   enrichFlag <- apply( t( t(extractIP(MeRIPdata))/T1 )/ t( t( extractInput(MeRIPdata) )/T0 ),1,function(x){sum(x>1)> MeRIPdata@jointPeak_threshold})
   MeRIPdata <-  filter(MeRIPdata, enrichFlag )
   cat(paste0("Peaks with odd ratio > 1 in more than ",MeRIPdata@jointPeak_threshold," samples will be retained.\n",nrow(jointPeak(MeRIPdata))," peaks remaining for QTL mapping.\n"))
+  
   ## estimate IP efficiency
   OR <- t( apply(extractIP(MeRIPdata),1,.noZero)/T1 )/ t( t( extractInput(MeRIPdata) )/T0 )
   colnames(OR) <- MeRIPdata@samplenames
-  OR.id <- which( rowMeans(OR) < quantile( rowMeans(OR), 0.95 ) & rowMeans(OR) > quantile( rowMeans(OR), 0.1) )# remove two tails
-  K_IPe <- log( apply(OR[OR.id,], 2, function(x){coef(lm(x~rowMeans(OR)[OR.id]) )[2]}) ) # fit linear moedel to obtain the IP efficiency offset
+  logOR <- log(OR)
   
+  logOR.id <- which( rowMeans(logOR) < quantile( rowMeans(logOR), 0.95 ) & rowMeans(logOR) > quantile( rowMeans(logOR), 0.05) )# remove two tails
+  K_IPe_ij <- apply(logOR[logOR.id,], 2, function(x){
+    
+    fit <- lm(y~m, data = data.frame(y = x, m=rowMeans(logOR)[logOR.id] ))
+    y.est <- predict(fit, newdata =  data.frame(m = rowMeans(logOR)))
+    return( y.est - rowMeans(logOR) )
+  })
+  
+  ## estimate GC bias offset
   if(AdjustGC){
     cat("Computing GC content for peaks\n")
     ## GC content correction
@@ -85,7 +95,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
     peakGC_l[which(peakGC_l<0.2)] <-median(peakGC_l[which(peakGC_l<0.2)] ) # combine some bins at low GC due to low number of peaks
     peakGC_l[which(peakGC_l>0.84)] <-median(peakGC_l[which(peakGC_l>0.84)] ) # combine some bins at high GC due to low number of peaks
     l <- sort(unique(peakGC_l))
-    if(AdjIPeffi){y <- (log( OR ) - K_IPe)}else{y <-  log(OR) }
+    if(AdjIPeffi){y <- (log( OR ) - K_IPe_ij )}else{y <-  log(OR) }
     colnames(y) <- MeRIPdata@samplenames
     b.l <- tapply(rowMeans( y ), peakGC_l ,  median) 
     bil <- apply( y, 2, tapply, peakGC_l, median )
@@ -103,11 +113,11 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
   if(PCsToInclude > 0 & PCsToInclude <= length(MeRIPdata@samplenames) ){
     cat("Computing Principal components.\n")
     if(AdjustGC & AdjIPeffi){
-      PCs <- prcomp(t( (log(OR ) -  K_IPe - Fij)[apply(extractIP(MeRIPdata),1,function(x) all(x!=0)),] ) )$x
+      PCs <- prcomp(t( (log(OR ) -  K_IPe_ij - Fij)[apply(extractIP(MeRIPdata),1,function(x) all(x!=0)),] ) )$x
     }else if( AdjustGC & !AdjIPeffi){
       PCs <- prcomp(t( (log(OR ) - Fij)[apply(extractIP(MeRIPdata),1,function(x) all(x!=0)),] ))$x
     }else if(AdjIPeffi){
-      PCs <- prcomp(t( (log(OR ) - K_IPe)[apply(extractIP(MeRIPdata),1,function(x) all(x!=0)),] ))$x
+      PCs <- prcomp(t( (log(OR ) - K_IPe_ij)[apply(extractIP(MeRIPdata),1,function(x) all(x!=0)),] ))$x
     }else{
       PCs <- prcomp( t( log(OR)[apply(extractIP(MeRIPdata),1,function(x) all(x!=0)),] ))$x
     }
@@ -144,7 +154,7 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
   
   ## ditermine study design according to parameters
   variables <-  "offset(log(T1/T0))"
-  if( AdjIPeffi ){ variables <- paste(variables, "offset(K_IPe)", sep  = " +") }
+  if( AdjIPeffi ){ variables <- paste(variables, "offset(K_IPe_j)", sep  = " +") }
   if( AdjustGC ){ variables <- paste(variables, "offset(Fj)", sep = " +") } 
   if(! is.null(Covariates)  ){ 
     variables <-  paste(variables, paste(colnames(Covariates),collapse = " + "), sep = "+")
@@ -215,12 +225,12 @@ QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsapiens.UCSC
       }
       
       if(AdjustGC){Fj <- FIj[i,]}
-      
+      if(AdjIPeffi){K_IPe_j <- K_IPe_ij[i,]}
       
       ## Test QTLs for peak.j
       tmp_est <- as.data.frame(matrix(nrow = nrow(geno),ncol = 5),row.names = rownames(geno) )
       for( ii in 1:nrow(geno) ){
-        if(AdjustGC){fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe, Fj , G = geno[ii,])}else{fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe , G = geno[ii,])}
+        if(AdjustGC){fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe_j , Fj , G = geno[ii,])}else{fit_data <- data.frame(Y0i = Y0[i,], Y1i = Y1[i,], T1, T0, K_IPe_j , G = geno[ii,])}
         ## add PCs to data
         if(PCsToInclude > 1 ){ fit_data <- cbind(fit_data,data.frame(PCs[,1:PCsToInclude]) )}else if(PCsToInclude == 1){fit_data <- cbind(fit_data,data.frame(PC1 = PCs[,1]) ) }
         ## add covariates

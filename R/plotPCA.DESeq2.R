@@ -47,3 +47,4 @@ plotPCAfromMatrix <- function(m,group, standardize = TRUE,loglink = TRUE){
                        axis.text.x = element_text(size = 15,face = "bold",family = "arial") ,axis.text.y = element_text(size = 15,face = "bold",family = "arial")  )
 
 }
+
