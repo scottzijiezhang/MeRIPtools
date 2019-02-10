@@ -137,7 +137,7 @@ countReads<-function(
   colnames(reads) <- c(paste(samplenames,"input",sep = "-"),paste(samplenames,"IP",sep = "-"))
 
 
-  data.out <- MeRIP(reads = reads, binSize = binSize, geneModel = geneGRList, bamPath.input = bamPath.input, bamPath.ip = bamPath.IP, samplenames = samplenames)
+  data.out <- MeRIP(reads = reads, binSize = binSize, gtf = gtf, geneModel = geneGRList, bamPath.input = bamPath.input, bamPath.ip = bamPath.IP, samplenames = samplenames)
   if(saveOutput){
     ## create output directory
     dir.create(outputDir, showWarnings = FALSE, recursive = TRUE)

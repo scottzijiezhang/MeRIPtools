@@ -101,7 +101,7 @@ setGeneric("peakDistribution",function(object){
 })
 
 #' @export
-setGeneric("plotGeneCov", function(object, geneName, libraryType, center,ZoomIn, adjustExprLevel, adjustExpr_peak_range = NULL ){
+setGeneric("plotGeneCov", function(object, geneName, libraryType = "opposite", center = mean,ZoomIn = NULL, adjustExprLevel = F , split = FALSE, ... ){
   standardGeneric("plotGeneCov")
   })
 

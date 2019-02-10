@@ -865,11 +865,23 @@ setMethod("extractInput", signature("MeRIP.Peak"), function(object){
 #' @param center Specify the method to calculate average coverage of each group. Could be mean or median.
 #' @param ZoomIn c(start,end) The coordinate to zoom in at the gene to be ploted.
 #' @param adjustExprLevel logical parameter. Specify whether normalize the two group so that they have similar expression level.
+#' @param split Logical option. Whether to split plots for each individual (TRUE), or plot each group by group mean/median coverage (FALSE, default).
+#' @param adjustExpr_peak_range The nucleotide range in which we quantify gene expression (from Input) and normalize coverages of all samples by gene expression so that IP coverage can be easily compared across conditions.
 #' @export
-setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, libraryType = "opposite", center = mean,ZoomIn = NULL, adjustExprLevel = F , adjustExpr_peak_range = NULL){
+setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, libraryType = "opposite", center = mean,ZoomIn = NULL, adjustExprLevel = FALSE , split = FALSE, adjustExpr_peak_range = NULL){
   if( nrow(variable(object))>0 ){
-  X <- factor(variable(object)[,1])
-  plotGeneCoverage(IP_BAMs = IP.files(object),
+  X <- factor(variable(object)[,1], levels = unique( variable(object)[,1]) )
+  if(split){
+    plotGeneCoverageSplit(IP_BAMs = IP.files(object),
+                          INPUT_BAMs =Input.files(object),
+                          size.IP = object@sizeFactor$ip,
+                          size.INPUT = object@sizeFactor$input,
+                          X, geneName,
+                          geneModel = object@geneModel,
+                          libraryType, center  ,object@GTF, ZoomIn, adjustExprLevel,adjustExpr_peak_range = adjustExpr_peak_range ,plotSNP = NULL , Names = samplenames(object) )+
+      theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.title =  element_text(hjust = 0.5,size = 13,face = "bold"),legend.text =  element_text(size = 12,face = "bold"))
+  }else{
+    plotGeneCoverage(IP_BAMs = IP.files(object),
                    INPUT_BAMs =Input.files(object),
                    size.IP = object@sizeFactor$ip,
                    size.INPUT = object@sizeFactor$input,
@@ -877,8 +889,21 @@ setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, lib
                    geneModel = object@geneModel,
                    libraryType, center  ,object@GTF, ZoomIn, adjustExprLevel,adjustExpr_peak_range = adjustExpr_peak_range ,plotSNP = NULL  )+
     theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.title =  element_text(hjust = 0.5,size = 13,face = "bold"),legend.text =  element_text(size = 12,face = "bold"))
+  }
+  
 }else{
-  plotGeneCoverage(IP_BAMs = IP.files(object),
+  if(split){
+    plotGeneCoverageSplit(IP_BAMs = IP.files(object), 
+                          INPUT_BAMs = Input.files(object),
+                          size.IP = object@sizeFactor$ip,
+                          size.INPUT = object@sizeFactor$input,
+                          rep("All samples",length(object@samplenames)), geneName,
+                          geneModel = object$geneModel,
+                          libraryType, center, object@GTF ,ZoomIn, adjustExprLevel,adjustExpr_peak_range = NULL ,plotSNP = NULL , Names = samplenames(object) ) +
+      theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.position="none" )
+                    
+  }else{
+    plotGeneCoverage(IP_BAMs = IP.files(object),
                    INPUT_BAMs = Input.files(object),
                    size.IP = object@sizeFactor$ip,
                    size.INPUT = object@sizeFactor$input,
@@ -886,6 +911,8 @@ setMethod("plotGeneCov", signature("MeRIP.Peak"), function(object, geneName, lib
                    geneModel = object$geneModel,
                    libraryType, center, object@GTF ,ZoomIn, adjustExprLevel,adjustExpr_peak_range = NULL ,plotSNP = NULL  )+
     theme(plot.title = element_text(hjust = 0.5,size = 15,face = "bold"),legend.position="none" )
+  }
+  
 }
 })
 
