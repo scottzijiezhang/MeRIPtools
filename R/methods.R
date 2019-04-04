@@ -1210,11 +1210,11 @@ setMethod("RADARtest", signature("MeRIP.Peak"), function(object, exclude = NULL,
     all.est <- NULL
     all.id <- NULL
     for(kk in 1:nrow(allY)){
-      Y <- unlist(allY[kk, ] )
-      aa <- unlist(summary( lm( design.multiBeta ) )$coefficients[, 1])
+      tmpData <- data.frame( cbind( "Y"=unlist(allY[kk, ] ), X.all ) )
+      aa <- unlist(summary( lm( design.multiBeta,data = tmpData ) )$coefficients[, 1])
       mu2 <- aa[1]
       beta <- aa[2:(ncol(X.all)+1 )]
-      est <- try(unlist(PoissionGamma_multiple_beta(Y, X.all, beta, psi, mu2, gamma = 0.25, steps = 10, down = 0.1,psi_cutoff = maxPsi)))
+      est <- try(unlist(PoissionGamma_multiple_beta(tmpData$Y, X.all, beta, psi, mu2, gamma = 0.25, steps = 10, down = 0.1,psi_cutoff = maxPsi)))
       if(class(est) != "try-error"){
         all.est <- rbind(all.est, est)
         all.id <- c(all.id, kk)

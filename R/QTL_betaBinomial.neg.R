@@ -21,6 +21,33 @@ swapChr22.QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsa
   }else if( !nrow(MeRIPdata@jointPeaks) == nrow(MeRIPdata@jointPeak_ip) & nrow(MeRIPdata@jointPeaks) == nrow(MeRIPdata@jointPeak_input) ){
     stop("The peak counts matrix dimension must match the dimension of jointPeaks!")
   }
+  
+  ## check samples in genotype files and in MeRIP.Peak object
+  tmpVcf <- tempfile(fileext = ".vcf.gz")
+  system(paste0("zcat ",vcf_file," | awk 'NR==1 {print $0} (/^#CHROM/){print $0}'| gzip > ",tmpVcf))
+  tmp.vcf <-try(  read.vcfR( file =tmpVcf, verbose = F ) , silent = T)
+  ############################################################################################################################################################
+  ### This is to handle a wired error in the read.vcfR function. #############################################################################################
+  if(class(tmp.vcf) == "try-error"){                                                                                                                       ##
+    system(paste0("zcat ",vcf_file," | awk '/^#/ {print $0}'| gzip >",tmpVcf))  ##
+    tmp.vcf <-read.vcfR( file =tmpVcf, verbose = F )                                                                                                       ##
+  }                                                                                                                                                         ##
+  ############################################################################################################################################################
+  unlink(tmpVcf) # remove the temp file to free space.
+  genotypeSamples <- colnames(tmp.vcf@gt)[-c(1)]
+  if(length(intersect(genotypeSamples,samplenames(MeRIPdata))) == 0 ){
+    stop("The samplenames must match in VCF file and in MeRIP.Peak object! We found no overlap between sample names in these two files!")
+  }else if(length(intersect(genotypeSamples,samplenames(MeRIPdata))) != length(samplenames(MeRIPdata) )){
+    cat("The samples in the VCF don't totally match samples in the MeRIP.Peak object; ")
+    cat("Only samples in MeRIP.Peak object overlapping samples in VCF file will be analyzed in QTL mapping!\nSubsetting samples...\n")
+    MeRIPdata <- MeRIPtools::select(MeRIPdata, intersect(genotypeSamples,samplenames(MeRIPdata))  )
+    cat(paste0(paste(intersect(genotypeSamples,samplenames(MeRIPdata)),collapse = " "), "\n(",length(intersect(genotypeSamples,samplenames(MeRIPdata))),") samples will be analyzed!"))
+  }else{
+    ## make sure the order of samples aligned between phenotype and genotype
+    MeRIPdata <- select(MeRIPdata, intersect(genotypeSamples,samplenames(MeRIPdata))  )
+  }
+  
+  
   ### Preprocess
   ##fitler out peaks with zero count
   MeRIPdata <- filter(MeRIPdata, !apply(extractInput(MeRIPdata), 1, function(x) any(x == 0 )) )
@@ -28,15 +55,24 @@ swapChr22.QTL_BetaBin <- function( MeRIPdata , vcf_file, BSgenome = BSgenome.Hsa
   
   T0 <- colSums(counts(MeRIPdata)[,1:length(MeRIPdata@samplenames)] )
   T1 <- colSums(counts(MeRIPdata)[,(length(MeRIPdata@samplenames)+1) : (2*length(MeRIPdata@samplenames)) ] )
+  
   ##filter out peaks with OR < 1
   enrichFlag <- apply( t( t(extractIP(MeRIPdata))/T1 )/ t( t( extractInput(MeRIPdata) )/T0 ),1,function(x){sum(x>1)> MeRIPdata@jointPeak_threshold})
   MeRIPdata <-  filter(MeRIPdata, enrichFlag )
   cat(paste0("Peaks with odd ratio < 1 in more than ",MeRIPdata@jointPeak_threshold," samples have been removed.\n",nrow(jointPeak(MeRIPdata))," peaks remaining for QTL mapping.\n"))
+  
   ## estimate IP efficiency
   OR <- t( apply(extractIP(MeRIPdata),1,.noZero)/T1 )/ t( t( extractInput(MeRIPdata) )/T0 )
   colnames(OR) <- MeRIPdata@samplenames
-  OR.id <- which( rowMeans(OR) < quantile( rowMeans(OR), 0.95 ) & rowMeans(OR) > quantile( rowMeans(OR), 0.1) )# remove two tails
-  K_IPe <- log( apply(OR[OR.id,], 2, function(x){coef(lm(x~rowMeans(OR)[OR.id]) )[2]}) ) # fit linear moedel to obtain the IP efficiency offset
+  logOR <- log(OR)
+  
+  logOR.id <- which( rowMeans(logOR) < quantile( rowMeans(logOR), 0.95 ) & rowMeans(logOR) > quantile( rowMeans(logOR), 0.05) )# remove two tails
+  K_IPe_ij <- apply(logOR[logOR.id,], 2, function(x){
+    
+    fit <- lm(y~m, data = data.frame(y = x, m=rowMeans(logOR)[logOR.id] ))
+    y.est <- predict(fit, newdata =  data.frame(m = rowMeans(logOR)))
+    return( y.est - rowMeans(logOR) )
+  })
   
   if(AdjustGC){
     cat("Computing GC content for peaks\n")
