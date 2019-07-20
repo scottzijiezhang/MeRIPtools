@@ -6,7 +6,7 @@
 plotMetaGene <- function(peak,gtf){
   feature <- list('peak'=.peakToGRangesList(peak) )
   txdb <- makeTxDbFromGFF(gtf,format = "gtf")
-  gc_txdb <- makeGuitarCoordsFromTxDb(txdb, noBins=50)
+  gc_txdb <- .makeGuitarCoordsFromTxDb(txdb, noBins=50)
   GuitarCoords <- gc_txdb
   m <- .countGuitarDensity(
     feature[[1]],
@@ -100,7 +100,8 @@ plotMetaGene <- function(peak,gtf){
                        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),legend.position = "none",legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
 
   .multiplot(p1, p2, cols=2)
-
+  
+  cat("NOTE this function is a wrapper for R package \"Guitar\".\nIf you use the metaGene plot in publication, please cite the original reference:\nCui et al 2016 BioMed Research International \n")
 }
 
 
@@ -117,9 +118,11 @@ plotMetaGeneMulti <- function(peakList,gtf,saveToPDFprefix=NA,
   gfeature <- lapply(peakList,.peakToGRangesList)
   names(gfeature) <- names(peakList)
   txdb <- makeTxDbFromGFF(gtf,format = "gtf")
-  gc_txdb <- makeGuitarCoordsFromTxDb(txdb, noBins=50)
+  gc_txdb <- .makeGuitarCoordsFromTxDb(txdb, noBins=50)
 
   GuitarPlotNew(gfeature, GuitarCoordsFromTxDb = gc_txdb,saveToPDFprefix=saveToPDFprefix,
              includeNeighborDNA=includeNeighborDNA)
-
+  
+  cat("NOTE this function is a wrapper for R package \"Guitar\".\nIf you use the metaGene plot in publication, please cite the original reference:\nCui et al 2016 BioMed Research International \n")
+  
 }
