@@ -13,7 +13,7 @@ Guitar, stringr,vcfR,gamlss, broom, DESeq2
 
 ## Manual page
 
-Please refer to [manual page]() for detailed instructions.  
+Please refer to [manual page](https://scottzijiezhang.github.io/MeRIPtoolsManual/) for detailed instructions.  
 
 ## Citation 
 MeRIPtools is a tool sets that implemented functions for peak calling, QTL calling, differential methylation analysis, visualization. 
