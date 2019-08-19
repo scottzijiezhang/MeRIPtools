@@ -1,7 +1,7 @@
 Package: MeRIPtools
 Type: Package
 Title: Analyze MeRIP-seq data and QTL calling
-Version: 0.1.4
+Version: 0.1.5
 Author: Zijie Zhang, Kaixuan Luo , Chuan He, Xin He
 Maintainer: The package maintainer <scottzjzhang@uchicago.edu>
 Description: The MeRIPtools is a comprehensive toolset for analyzing MeRIP-seq (e.g. m6A-seq) and data visualization. 

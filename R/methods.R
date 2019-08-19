@@ -1764,5 +1764,46 @@ setMethod("annotatePeak", signature("MeRIP.Peak"), function(object, threads){
 })
 
   
+####################################################################################################################################################
+#' @title getTPM
+#' @param object The MeRIP object
+#' @param meanFragmentLength The mean length of RNA fragment (insert of RNA library). Default is 150bp.
+#' @param  normalize Logical indicating whether normalized TPM or raw TPM should be returned.
+#' @export
+getTPM <- function(object, meanFragmentLength = 150, normalize = T){
   
+  input <- object@reads[,1:length(object@samplenames)]
+  gene.name <- object@geneBins$gene
+  geneSum <- apply(input,2,function(y){
+    tapply(y,gene.name,sum)
+  })
+  colnames(geneSum) <- object@samplenames
+  
+  genes <- rownames(object@geneSum)
+  
+  cat("calculating gene length...\n")
+  geneLength <- sapply(genes,function(yy){
+    sum( as.data.frame( object@geneModel[[yy]] )$width )
+  })
+  
+  
+  effLength <- geneLength - meanFragmentLength
+  effLength <- sapply(effLength,max,1) ## remove effective length smaller than 0.
+  
+  cat("computing TPM from read counts...\n")
+  
+  rate <- apply(geneSum,2,function(aa){aa/effLength})
+  totalCounts <-colSums(rate)
+  
+  tpm <- t( t(rate)/totalCounts ) *1e6
+  
+  size.tpm <- DESeq2::estimateSizeFactorsForMatrix(tpm)
+  tpm_norm <- t(t(tpm)/ size.tpm)
+  
+  if(normalize){
+    return(tpm_norm)
+  }else{
+    return(tpm)
+  }
+}
   
