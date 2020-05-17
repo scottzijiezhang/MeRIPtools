@@ -129,7 +129,7 @@ setGeneric("select" ,function(object, samples, keepData=TRUE){
 setGeneric("results", function(object){standardGeneric("results")})
 
 #' @export
-setGeneric("BetaBinTest",function(object,  AdjIPeffi = TRUE ,  AdjustGC = FALSE, BSgenome = BSgenome.Hsapiens.UCSC.hg38){standardGeneric("BetaBinTest")})
+setGeneric("BetaBinTest",function(object,  AdjIPeffi = TRUE ,  AdjustGC = FALSE, BSgenome = BSgenome.Hsapiens.UCSC.hg38, thread = 1){standardGeneric("BetaBinTest")})
 
 #' @export
 setGeneric("annotatePeak",function(object, threads = 1){standardGeneric("annotatePeak")})

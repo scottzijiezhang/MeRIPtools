@@ -2,8 +2,9 @@
 #' @param peak the data frame of peak in bed12 format.
 #' @param gtf The annotation file.
 #' @import Guitar
+#' @import ggsci
 #' @export
-plotMetaGene <- function(peak,gtf){
+plotMetaGene <- function(peak, gtf ){
   feature <- list('peak'=.peakToGRangesList(peak) )
   txdb <- makeTxDbFromGFF(gtf,format = "gtf")
   gc_txdb <- .makeGuitarCoordsFromTxDb(txdb, noBins=50)
@@ -38,17 +39,22 @@ plotMetaGene <- function(peak,gtf){
     id <- (ct2$Feature==featureSet[i])
     ct2$weight[id] <- ct2$weight[id]/sum(ct2$weight[id])
   }
-
+  
+  
   p2 <-
     ggplot(ct2, aes(x=pos, weight=weight)) +
     ggtitle("Distribution on lncRNA")  +
     xlab("") +
     ylab("Frequency") +
-    geom_density(adjust=1,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2) +
-    annotate("text", x = 0.5, y = -0.2, label = "lncRNA")+
+    geom_density(adjust=1,aes(fill=factor(Feature),colour=factor(Feature)) ) +
+    annotate("text", x = 0.5, y = -0.25, label = "lncRNA", size = 5)+
     annotate("rect", xmin = 0, xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
     theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), plot.title = element_text(face = "bold",hjust = 0.5))
+                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                       plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                       axis.text.y = element_text( color = "black", size = 15),
+                       axis.title.y = element_text( color = "black", size = 15)
+                       )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)")
 
   # normalization by length of components in mRNA
   # calculate relative length of each components
@@ -88,16 +94,20 @@ plotMetaGene <- function(peak,gtf){
     ggtitle("Distribution on mRNA") +
     xlab("") +
     ylab("Frequency") +
-    geom_density(adjust=1,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2) +
-    annotate("text", x = x[1]/2, y = -0.2, label = "5'UTR") +
-    annotate("text", x = x[1] + weight[2]/2, y = -0.2, label = "CDS") +
-    annotate("text", x = x[2] + weight[3]/2, y = -0.2, label = "3'UTR") +
+    geom_density(adjust=1,aes(fill=factor(Feature),colour=factor(Feature)) ) +
+    annotate("text", x = x[1]/2, y = -0.25, label = "5'UTR", size = 5) +
+    annotate("text", x = x[1] + weight[2]/2, y = -0.28, label = "CDS", size = 5) +
+    annotate("text", x = x[2] + weight[3]/2, y = -0.25, label = "3'UTR", size = 5) +
     geom_vline(xintercept= x[1:2], linetype="dotted") +
     annotate("rect", xmin = 0, xmax = x[1], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
     annotate("rect", xmin = x[2], xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
     annotate("rect", xmin = x[1], xmax = x[2], ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black")+
     theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),legend.position = "none",legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
+                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                       plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                       axis.text.y = element_text( color = "black", size = 15),
+                       axis.title.y = element_text( color = "black", size = 15)
+    )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)"  )
 
   .multiplot(p1, p2, cols=2)
   
@@ -110,9 +120,11 @@ plotMetaGene <- function(peak,gtf){
 #' @param gtf The annotation file for the gene model.
 #' @param saveToPDFprefix Set a name to save the plot to PDF.
 #' @param includeNeighborDNA Whether to include upstrean and downstream region in the meta gene.
+#' @param fill The logic option to chose whether to fill the density curve.
 #' @import Guitar
+#' @import ggsci
 #' @export
-plotMetaGeneMulti <- function(peakList,gtf,saveToPDFprefix=NA,
+plotMetaGeneMulti <- function(peakList,gtf,saveToPDFprefix=NA, fill=FALSE,
                               includeNeighborDNA=FALSE){
 
   gfeature <- lapply(peakList,.peakToGRangesList)
@@ -120,7 +132,7 @@ plotMetaGeneMulti <- function(peakList,gtf,saveToPDFprefix=NA,
   txdb <- makeTxDbFromGFF(gtf,format = "gtf")
   gc_txdb <- .makeGuitarCoordsFromTxDb(txdb, noBins=50)
 
-  GuitarPlotNew(gfeature, GuitarCoordsFromTxDb = gc_txdb,saveToPDFprefix=saveToPDFprefix,
+  GuitarPlotNew(gfeature, GuitarCoordsFromTxDb = gc_txdb,saveToPDFprefix=saveToPDFprefix,fill = fill,
              includeNeighborDNA=includeNeighborDNA)
   
   cat("NOTE this function is a wrapper for R package \"Guitar\".\nIf you use the metaGene plot in publication, please cite the original reference:\nCui et al 2016 BioMed Research International \n")

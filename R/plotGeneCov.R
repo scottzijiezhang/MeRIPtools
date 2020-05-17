@@ -9,6 +9,7 @@
 #' @param GTF gtf annotation as GRanges object. Can be obtained by GTF <- rtracklayer::import("xxx.gtf",format = "gtf")
 #' @param adjustExprLevel Logic parameter determining whether adjust coverage so that input are at "same" expression level.
 #' @param plotSNP The option to plot SNP on the figure. Null by default. If want to include SNP in the plot, the parameter needs to ba a dataframe like this:  data.frame(loc= position, anno="A/G")
+#' @import ggsci
 #' @export
 plotGeneCoverage <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, geneName, geneModel, libraryType = "opposite", center = mean ,GTF,ZoomIn=NULL, adjustExprLevel = FALSE, adjustExpr_peak_range = NULL, plotSNP = NULL){
   
@@ -65,7 +66,7 @@ plotGeneCoverage <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, geneNam
   chr <- unique(as.character(as.data.frame(geneModel[geneName])$seqnames))
 
   p1 <- "ggplot(data = cov.data,aes(genome_location))+geom_line(aes(y=Input,colour =Group))+geom_ribbon(aes(ymax = IP,ymin=0,fill=Group), alpha = 0.4)+labs(y=\"normalized coverage\",x = paste0( \"Genome location on chromosome: \", chr) )+scale_x_continuous(breaks = round(seq(min(cov.data$genome_location), max(cov.data$genome_location), by = ((max(cov.data$genome_location)-min(cov.data$genome_location))/10) )),expand = c(0,0,0,0))+theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-  panel.grid.minor = element_blank(), axis.line = element_line(colour = \"black\"),axis.title = element_text(face = \"bold\"),axis.text = element_text(face = \"bold\") ) + scale_fill_discrete(name=\"IP\") + scale_colour_discrete(name=\"INPUT\")+ scale_y_continuous(expand = c(0, 0))"
+  panel.grid.minor = element_blank(), axis.line = element_line(colour = \"black\"),  axis.ticks = element_line(colour = \"black\"), axis.title = element_text(color = \"black\", size = 18),axis.text = element_text(color = \"black\", size = 15) ) + scale_fill_nejm(name=\"IP\") + scale_colour_nejm(name=\"INPUT\")+ scale_y_continuous(expand = c(0, 0))"
 
   p2 <- .getGeneModelAnno(geneModel,geneName,GTF,ZoomIn)
 
@@ -172,7 +173,7 @@ plotGeneCoverageSplit <- function(IP_BAMs, INPUT_BAMs, size.IP, size.INPUT,X, ge
   chr <- unique(as.character(as.data.frame(geneModel[geneName])$seqnames))
   
   p1 <- "ggplot(data = cov.data,aes(genome_location))+geom_line(aes(y=Input),colour = \"#00BFC4\")+geom_ribbon(aes(ymax = IP,ymin=0),fill= \"#F8766D\", alpha = 0.4)+labs(y=\"Normalized coverage\",x = paste0( chr) )+facet_grid(Index~Group) +scale_x_continuous(breaks = round(seq(min(cov.data$genome_location), max(cov.data$genome_location), by = ((max(cov.data$genome_location)-min(cov.data$genome_location))/4) )[-c(1,5)] ),expand = c(0,0))+theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-  panel.grid.minor = element_blank(),strip.text.x = element_text(face = \"bold\", size = 18),strip.text.y = element_text(face = \"bold\", size = 14) , axis.line = element_line(colour = \"black\", size = 1),axis.title = element_text(face = \"bold\", size = 16),axis.text = element_text(face = \"bold\", colour = \"black\", size = 15) ) + scale_fill_discrete(name=\"IP\") + scale_colour_discrete(name=\"INPUT\") + scale_y_continuous(expand = c(0, 0)) +geom_text(aes(label = Indiv, x = mean(genome_location), y = yscale*0.88 ))"
+  panel.grid.minor = element_blank(),strip.text.x = element_text(color = \"black\", size = 18),strip.text.y = element_text(color = \"black\", size = 15) , axis.line = element_line(colour = \"black\", size = 1),axis.title = element_text(color = \"black\", size = 18),axis.text = element_text( colour = \"black\", size = 15) ) + scale_fill_nejm(name=\"IP\") + scale_colour_nejm(name=\"INPUT\") + scale_y_continuous(expand = c(0, 0)) +geom_text(aes(label = Indiv, x = mean(genome_location), y = yscale*0.88 ))"
   
   p2 <- .getGeneModelAnno(geneModel,geneName,GTF,ZoomIn)
   

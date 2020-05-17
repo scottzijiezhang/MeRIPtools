@@ -26,8 +26,10 @@ plotPCA.DESeq2 <- function(data,group = NULL, returnPC = FALSE){
 #' @param group The factor levels to color the samples. Should be the save number as the # of matrix columns
 #' @param standardize Logic parameter indicating whether to standardize the count data to have unit variance. The default is TRUE. 
 #' @param loglink Logic parameter determine whether to take log of the metrix data. Default is TRUE. If your input matrix is at log scale, use FALSE.
+#' @param groupName The name of label. 
+#' @import ggsci
 #' @export
-plotPCAfromMatrix <- function(m,group, standardize = TRUE,loglink = TRUE){
+plotPCAfromMatrix <- function(m,group, standardize = TRUE,loglink = TRUE, groupName = "Group"){
   if(loglink){
     mm <- log(m + 1)
   }else{
@@ -41,10 +43,11 @@ plotPCAfromMatrix <- function(m,group, standardize = TRUE,loglink = TRUE){
   ggplot(data = pca.df,aes(PC1,PC2,label = rownames(pca.df),colour=group) )+geom_text()+ xlab(makeLab(props[1],1)) + ylab(makeLab(props[2],2))+
     theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black",size = 1),
-                       axis.title.x=element_text(size=20, face="bold", hjust=0.5,family = "arial"),
-                       axis.title.y=element_text(size=20, face="bold", vjust=0.4, angle=90,family = "arial"),
-                       legend.title=element_text(size = 15,face = "bold"),legend.text = element_text(size = 18, face = "bold",family = "arial"),
-                       axis.text.x = element_text(size = 15,face = "bold",family = "arial") ,axis.text.y = element_text(size = 15,face = "bold",family = "arial")  )
+                       axis.title.x=element_text(size=20, color="black", hjust=0.5 ),
+                       axis.title.y=element_text(size=20, color = "black", vjust=0.4, angle=90 ),
+                       legend.title=element_text(size = 18),legend.text = element_text(size = 18 ),
+                       axis.text.x = element_text(size = 18 ) ,axis.text.y = element_text(size = 18 )  )+
+    scale_colour_npg(name = groupName )
 
 }
 

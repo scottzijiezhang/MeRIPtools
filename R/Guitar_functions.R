@@ -390,7 +390,7 @@ combinedGuitarPlot <- function(ct, comLength = c(0.136,0.459, 0.405)){
     theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
     xlab("") +
     ylab("Frequency") +
-    geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2) +
+    geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.5) +
     annotate("text", x = 0.5, y = -0.2, label = "lncRNA")+
     annotate("rect", xmin = 0, xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
     theme(legend.position="bottom")
@@ -425,7 +425,7 @@ combinedGuitarPlot <- function(ct, comLength = c(0.136,0.459, 0.405)){
     theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
     xlab("") +
     ylab("Frequency") +
-    geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2) +
+    geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.5) +
     annotate("text", x = x[1]/2, y = -0.2, label = "5'UTR") +
     annotate("text", x = x[1] + weight[2]/2, y = -0.2, label = "CDS") +
     annotate("text", x = x[2] + weight[3]/2, y = -0.2, label = "3'UTR") +
@@ -602,23 +602,25 @@ GuitarPlotNew <- function(gfeatures,
         ggplot(ct1, aes(x=pos, group=Feature, weight=5*weight))  +
         scale_x_continuous(minor_breaks = seq(0, 5, 1)) +
         ggtitle("Distribution on mRNA") +
-        theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature), colour=factor(Feature)),alpha=0.2) +
-        annotate("text", x = 1.5, y = -0.2, label = "5'UTR") +
-        annotate("text", x = 2.5, y = -0.2, label = "CDS") +
-        annotate("text", x = 0.5, y = -0.2, label = "Promoter (1kb)") +
-        annotate("text", x = 4.5, y = -0.2, label = "Tail (1kb)") +
-        annotate("text", x = 3.5, y = -0.2, label = "3'UTR")  +
+        geom_density(adjust=adjust,aes( colour=factor(Feature)) ) +
+        annotate("text", x = 1.5, y = -0.22, label = "5'UTR", size = 5) +
+        annotate("text", x = 2.5, y = -0.25, label = "CDS", size = 5) +
+        annotate("text", x = 0.5, y = -0.22, label = "Promoter (1kb)", size = 5) +
+        annotate("text", x = 4.5, y = -0.22, label = "Tail (1kb)", size = 5) +
+        annotate("text", x = 3.5, y = -0.22, label = "3'UTR", size = 5)  +
         geom_vline(xintercept=1:4, linetype="dotted") +
         annotate("rect", xmin = 1, xmax = 2, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = 3, xmax = 4, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = 2, xmax = 3, ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black") +
         xlim(0,5) +
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.position = "none", plot.title = element_text(face = "bold",hjust = 0.5))
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)")
       
       # adjust position lncRNA
       pos_adjust <- match(ct2$comp,c("Front","lncRNA","Back"))-1
@@ -630,16 +632,19 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature), colour=factor(Feature)),alpha=0.2) +
-        annotate("text", x = 1.5, y = -0.2, label = "lncRNA") +
-        annotate("text", x = 0.5, y = -0.2, label = "Promoter (1kb)") +
-        annotate("text", x = 2.5, y = -0.2, label = "Tail (1kb)")  +
+        geom_density(adjust=adjust,aes( colour=factor(Feature)) ) +
+        annotate("text", x = 1.5, y = -0.22, label = "lncRNA", size = 5) +
+        annotate("text", x = 0.5, y = -0.22, label = "Promoter (1kb)", size = 5) +
+        annotate("text", x = 2.5, y = -0.22, label = "Tail (1kb)", size = 5)  +
         geom_vline(xintercept=1:2, linetype="dotted") +
         annotate("rect", xmin = 1, xmax = 2, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         xlim(0,3) +
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)") 
     } else {
       
       if (rescaleComponent) {
@@ -696,20 +701,23 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2) +
-        annotate("text", x = sum(x1[1:2])/2, y = -0.2, label = "5'UTR") +
-        annotate("text", x = sum(x1[2:3])/2, y = -0.2, label = "CDS") +
-        annotate("text", x = x1[1]/2, y = -0.2, label = "Promoter (1kb)") +
-        annotate("text", x = sum(x1[4:5])/2, y = -0.2, label = "Tail (1kb)") +
-        annotate("text", x = sum(x1[3:4])/2, y = -0.2, label = "3'UTR")  +
+        geom_density( adjust=adjust,aes( colour=factor(Feature)) ) +
+        annotate("text", x = sum(x1[1:2])/2, y = -0.22, label = "5'UTR", size = 5) +
+        annotate("text", x = sum(x1[2:3])/2, y = -0.25, label = "CDS", size = 5) +
+        annotate("text", x = x1[1]/2, y = -0.22, label = "Promoter (1kb)", size = 5) +
+        annotate("text", x = sum(x1[4:5])/2, y = -0.22, label = "Tail (1kb)", size = 5) +
+        annotate("text", x = sum(x1[3:4])/2, y = -0.22, label = "3'UTR", size = 5)  +
         geom_vline(xintercept=x1[1:4], linetype="dotted") +
         annotate("rect", xmin = x1[1], xmax = x1[2], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = x1[3], xmax = x1[4], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = x1[2], xmax = x1[3], ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black") +
         xlim(0,1) +
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.position = "none", plot.title = element_text(face = "bold",hjust = 0.5))
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)") 
       
       
       p2 <-
@@ -719,16 +727,19 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2) +
-        annotate("text", x = sum(x2[1:2])/2, y = -0.2, label = "lncRNA") +
-        annotate("text", x = x2[1]/2, y = -0.2, label = 'Promoter (1kb)') +
-        annotate("text", x = sum(x2[2:3])/2, y = -0.2, label = "Tail (1kb)")  +
+        geom_density(adjust=adjust,aes( colour=factor(Feature)) ) +
+        annotate("text", x = sum(x2[1:2])/2, y = -0.22, label = "lncRNA", size = 5) +
+        annotate("text", x = x2[1]/2, y = -0.22, label = 'Promoter (1kb)', size = 5) +
+        annotate("text", x = sum(x2[2:3])/2, y = -0.22, label = "Tail (1kb)", size = 5)  +
         geom_vline(xintercept=x2[1:2], linetype="dotted") +
         annotate("rect", xmin = x2[1], xmax = x2[2], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         xlim(0,1) +
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)") 
     }
     
   }
@@ -756,12 +767,15 @@ GuitarPlotNew <- function(gfeatures,
       ggtitle("Distribution on lncRNA")  +
       xlab("") +
       ylab("Frequency") +
-      geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2) +
+      geom_density(adjust=adjust,aes( colour=factor(Feature)) ) +
       annotate("text", x = 0.5, y = -0.2, label = "lncRNA")+
       annotate("rect", xmin = 0, xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
       theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                         legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
+                         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                         plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                         axis.text.y = element_text( color = "black", size = 15),
+                         axis.title.y = element_text( color = "black", size = 15)
+      )+ scale_color_aaas(name = "Peak(s)") 
     
     if (rescaleComponent) {
       
@@ -806,17 +820,20 @@ GuitarPlotNew <- function(gfeatures,
         ggtitle("Distribution on mRNA") +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2) +
-        annotate("text", x = x[1]/2, y = -0.2, label = "5'UTR") +
-        annotate("text", x = x[1] + weight[2]/2, y = -0.2, label = "CDS") +
-        annotate("text", x = x[2] + weight[3]/2, y = -0.2, label = "3'UTR") +
+        geom_density(adjust=adjust,aes( colour=factor(Feature)) ) +
+        annotate("text", x = x[1]/2, y = -0.22, label = "5'UTR", size = 5) +
+        annotate("text", x = x[1] + weight[2]/2, y = -0.25, label = "CDS", size = 5) +
+        annotate("text", x = x[2] + weight[3]/2, y = -0.22, label = "3'UTR", size = 5) +
         geom_vline(xintercept= x[1:2], linetype="dotted") +
         annotate("rect", xmin = 0, xmax = x[1], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = x[2], xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = x[1], xmax = x[2], ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black")+
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.position = "none", plot.title = element_text(face = "bold",hjust = 0.5))
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)") 
       
       
       
@@ -830,17 +847,20 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature)),alpha=0.2) +
-        annotate("text", x = 0.5, y = -0.2, label = "5'UTR") +
-        annotate("text", x = 1.5, y = -0.2, label = "CDS") +
-        annotate("text", x = 2.5, y = -0.2, label = "3'UTR") +
+        geom_density(adjust=adjust,aes( color=factor(Feature)) ) +
+        annotate("text", x = 0.5, y = -0.22, label = "5'UTR", size = 5) +
+        annotate("text", x = 1.5, y = -0.25, label = "CDS", size = 5) +
+        annotate("text", x = 2.5, y = -0.22, label = "3'UTR", size = 5) +
         geom_vline(xintercept=1:2, linetype="dotted") +
         annotate("rect", xmin = 0, xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = 2, xmax = 3, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = 1, xmax = 2, ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black")+
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.position = "none", plot.title = element_text(face = "bold",hjust = 0.5))
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)") 
     }
   }
   
@@ -907,19 +927,22 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature), colour=factor(Feature)),alpha=0.2,position="fill") +
-        annotate("text", x = 1.5, y = -0.2, label = "5'UTR") +
-        annotate("text", x = 2.5, y = -0.2, label = "CDS") +
-        annotate("text", x = 0.5, y = -0.2, label = "Promoter (1kb)") +
-        annotate("text", x = 4.5, y = -0.2, label = "Tail (1kb)") +
-        annotate("text", x = 3.5, y = -0.2, label = "3'UTR")  +
+        geom_density(adjust=adjust,aes(fill=factor(Feature), colour=factor(Feature)),alpha=0.5,position="fill") +
+        annotate("text", x = 1.5, y = -0.22, label = "5'UTR", size = 5 ) +
+        annotate("text", x = 2.5, y = -0.25, label = "CDS", size = 5 ) +
+        annotate("text", x = 0.5, y = -0.22, label = "Promoter (1kb)", size = 5 ) +
+        annotate("text", x = 4.5, y = -0.22, label = "Tail (1kb)", size = 5 ) +
+        annotate("text", x = 3.5, y = -0.22, label = "3'UTR", size = 5 )  +
         geom_vline(xintercept=1:4, linetype="dotted") +
         annotate("rect", xmin = 1, xmax = 2, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = 3, xmax = 4, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = 2, xmax = 3, ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black") +
         xlim(0,5) +theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                                      legend.position = "none", plot.title = element_text(face = "bold",hjust = 0.5))
+                                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                                      plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                                      axis.text.y = element_text( color = "black", size = 15),
+                                      axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)")
       
       
       # adjust position lncRNA
@@ -932,16 +955,19 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature), colour=factor(Feature)),alpha=0.2,position="fill") +
-        annotate("text", x = 1.5, y = -0.2, label = "lncRNA") +
-        annotate("text", x = 0.5, y = -0.2, label = "Promoter (1kb)") +
-        annotate("text", x = 2.5, y = -0.2, label = "Tail (1kb)")  +
+        geom_density(adjust=adjust,aes(fill=factor(Feature), colour=factor(Feature)),alpha=0.5,position="fill") +
+        annotate("text", x = 1.5, y = -0.22, label = "lncRNA", size = 5) +
+        annotate("text", x = 0.5, y = -0.22, label = "Promoter (1kb)", size = 5) +
+        annotate("text", x = 2.5, y = -0.22, label = "Tail (1kb)", size = 5)  +
         geom_vline(xintercept=1:2, linetype="dotted") +
         annotate("rect", xmin = 1, xmax = 2, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         xlim(0,3) +
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)")
     } else {
       
       if (rescaleComponent) {
@@ -998,20 +1024,23 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2,position="fill") +
-        annotate("text", x = sum(x1[1:2])/2, y = -0.2, label = "5'UTR") +
-        annotate("text", x = sum(x1[2:3])/2, y = -0.2, label = "CDS") +
-        annotate("text", x = x1[1]/2, y = -0.2, label = "Promoter (1kb)") +
-        annotate("text", x = sum(x1[4:5])/2, y = -0.2, label = "Tail (1kb)") +
-        annotate("text", x = sum(x1[3:4])/2, y = -0.2, label = "3'UTR")  +
+        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.5,position="fill") +
+        annotate("text", x = sum(x1[1:2])/2, y = -0.22, label = "5'UTR", size = 5) +
+        annotate("text", x = sum(x1[2:3])/2, y = -0.25, label = "CDS", size = 5) +
+        annotate("text", x = x1[1]/2, y = -0.22, label = "Promoter (1kb)", size = 5) +
+        annotate("text", x = sum(x1[4:5])/2, y = -0.22, label = "Tail (1kb)", size = 5) +
+        annotate("text", x = sum(x1[3:4])/2, y = -0.22, label = "3'UTR", size = 5)  +
         geom_vline(xintercept=x1[1:4], linetype="dotted") +
         annotate("rect", xmin = x1[1], xmax = x1[2], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = x1[3], xmax = x1[4], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = x1[2], xmax = x1[3], ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black") +
         xlim(0,1) +
-        theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.position = "none", plot.title = element_text(face = "bold",hjust = 0.5))
+        theme_bw() +  theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
+                            panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                            plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                            axis.text.y = element_text( color = "black", size = 15),
+                            axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)")
       
       
       p2 <-
@@ -1021,16 +1050,19 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2,position="fill") +
-        annotate("text", x = sum(x2[1:2])/2, y = -0.2, label = "lncRNA") +
-        annotate("text", x = x2[1]/2, y = -0.2, label = 'Promoter (1kb)') +
-        annotate("text", x = sum(x2[2:3])/2, y = -0.2, label = "Tail (1kb)")  +
+        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.5,position="fill") +
+        annotate("text", x = sum(x2[1:2])/2, y = -0.22, label = "lncRNA", size = 5) +
+        annotate("text", x = x2[1]/2, y = -0.22, label = "Promoter (1kb)", size = 5) +
+        annotate("text", x = sum(x2[2:3])/2, y = -0.22, label = "Tail (1kb)", size = 5)  +
         geom_vline(xintercept=x2[1:2], linetype="dotted") +
         annotate("rect", xmin = x2[1], xmax = x2[2], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         xlim(0,1) +
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)")
     }
     
   }
@@ -1059,12 +1091,15 @@ GuitarPlotNew <- function(gfeatures,
       theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
       xlab("") +
       ylab("Frequency") +
-      geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2,position="fill") +
+      geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.5,position="fill") +
       annotate("text", x = 0.5, y = -0.2, label = "lncRNA")+
       annotate("rect", xmin = 0, xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
-      theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                         panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                         legend.text = element_text(face = "bold"), legend.title = element_blank(), plot.title = element_text(face = "bold",hjust = 0.5))
+      theme_bw() +  theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
+                          panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                          plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                          axis.text.y = element_text( color = "black", size = 15),
+                          axis.title.y = element_text( color = "black", size = 15)
+      )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)")
     
     if (rescaleComponent) {
       
@@ -1110,13 +1145,16 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.2,position="fill") +
-        annotate("text", x = x[1]/2, y = -0.2, label = "5'UTR") +
-        annotate("text", x = x[1] + weight[2]/2, y = -0.2, label = "CDS") +
-        annotate("text", x = x[2] + weight[3]/2, y = -0.2, label = "3'UTR") +
+        geom_density(adjust=adjust,aes(fill=factor(Feature),colour=factor(Feature)),alpha=0.5,position="fill") +
+        annotate("text", x = x[1]/2, y = -0.2, label = "5'UTR", size = 5) +
+        annotate("text", x = x[1] + weight[2]/2, y = -0.2, label = "CDS", size = 5) +
+        annotate("text", x = x[2] + weight[3]/2, y = -0.2, label = "3'UTR", size = 5) +
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.position = "none", plot.title = element_text(face = "bold",hjust = 0.5)) +
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)") +
         geom_vline(xintercept= x[1:2], linetype="dotted") +
         annotate("rect", xmin = 0, xmax = x[1], ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = x[2], xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
@@ -1133,13 +1171,16 @@ GuitarPlotNew <- function(gfeatures,
         theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
         xlab("") +
         ylab("Frequency") +
-        geom_density(adjust=adjust,aes(fill=factor(Feature)),alpha=0.2,position="fill") +
-        annotate("text", x = 0.5, y = -0.2, label = "5'UTR") +
-        annotate("text", x = 1.5, y = -0.2, label = "CDS") +
-        annotate("text", x = 2.5, y = -0.2, label = "3'UTR") +
+        geom_density(adjust=adjust,aes(fill=factor(Feature)),alpha=0.5,position="fill") +
+        annotate("text", x = 0.5, y = -0.2, label = "5'UTR", size = 5) +
+        annotate("text", x = 1.5, y = -0.2, label = "CDS", size = 5) +
+        annotate("text", x = 2.5, y = -0.2, label = "3'UTR", size = 5) +
         theme_bw() + theme(axis.ticks = element_blank(), axis.text.x = element_blank(),panel.border = element_blank(), panel.grid.major = element_blank(),
-                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
-                           legend.position = "none", plot.title = element_text(face = "bold",hjust = 0.5)) +
+                           panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.y = element_line(colour = "black"),
+                           plot.title = element_text(face = "bold",hjust = 0.5, size = 20),
+                           axis.text.y = element_text( color = "black", size = 15),
+                           axis.title.y = element_text( color = "black", size = 15)
+        )+ scale_color_aaas(name = "Peak(s)")+scale_fill_aaas(name = "Peak(s)") +
         annotate("rect", xmin = 0, xmax = 1, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = 2, xmax = 3, ymin = -0.12, ymax = -0.08, alpha = .99, colour = "black")+
         annotate("rect", xmin = 1, xmax = 2, ymin = -0.16, ymax = -0.04, alpha = .2, colour = "black")

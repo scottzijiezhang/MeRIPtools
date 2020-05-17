@@ -1249,7 +1249,7 @@ setMethod("RADARtest", signature("MeRIP.Peak"), function(object, exclude = NULL,
 #' @import broom
 #' @import stringr
 #' @import BSgenome
-setMethod("BetaBinTest", signature("MeRIP.Peak"), function(object, AdjIPeffi = TRUE ,  AdjustGC = FALSE, BSgenome = BSgenome.Hsapiens.UCSC.hg38 ){
+setMethod("BetaBinTest", signature("MeRIP.Peak"), function(object, AdjIPeffi = TRUE ,  AdjustGC = FALSE, BSgenome = BSgenome.Hsapiens.UCSC.hg38, thread = 1 ){
   
   if( nrow(object@variate) != length(object@samplenames)  ){
     stop(" Predictor variable lengthen needs to match the sample size! If you haven't set the predictor variable, please set it by variable(object) <- data.frmae(group = c(...)) ")
@@ -1338,7 +1338,7 @@ setMethod("BetaBinTest", signature("MeRIP.Peak"), function(object, AdjIPeffi = T
  
   design <- formula( paste0("cbind(Y1i , Y0i) ~" , variables) )
   
-  cat(paste0("Start beta-binomial regression for ",length(peak_bed.gr)," peaks...\n"))
+  cat(paste0("Start beta-binomial regression for ",nrow(Y1)," peaks...\n"))
   ## test each peak
   startTime <- Sys.time()
   registerDoParallel(thread)
@@ -1523,6 +1523,7 @@ setMethod("select", signature("MeRIP"),function(object , samples ){
                GTF = object@GTF)
   
   newOb@geneSum <- if( nrow(object@geneSum) > 1 ){object@geneSum[,id]}else{object@geneSum}
+  return(newOb)
 })
 
 
