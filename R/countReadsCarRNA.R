@@ -74,6 +74,11 @@ countReadsCarRNA<-function(
     geneGRListCombine <- geneGRList.wholeGene
   }
   
+  ## Check BAM headers and remove chr in geneModel that is not in BAM file. 
+  bamHeader <- scanBamHeader(bamPath.input, what=c("targets") )
+  seqLevels <- unique( unlist( lapply( bamHeader, function(x) names( x$targets) ) ) )
+  geneGRListCombine <- geneGRListCombine[ unlist( runValue( seqnames( geneGRListCombine ) ) ) %in% seqLevels ]
+  
   
   ## Process the gene region first.
   ## Count reads in transcripts. Because we are interested in carRNA, we count reads on pre-mRNA instead of mRNA. 
