@@ -214,7 +214,7 @@ setMethod("counts", signature("MeRIP.Peak"), function(object){
 #' @export
 reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
   ## check parameter
-  if(joint_threshold > length(MeRIPdata@samplenames)){
+  if(joint_threshold > length(MeRIPdata@samplenames)){ 
     stop("joint_threshold cannot be larger than the total number of samples!")
   }
   ## check data format
@@ -225,17 +225,17 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
     }else{
           stop("The input needs to be an MeRIP class object!")
         }
-  }else if(  MeRIPdata@jointPeak_threshold > 0  &  MeRIPdata@jointPeak_threshold == joint_threshold ){
+  }else if(  MeRIPdata@jointPeak_threshold > 0  &  MeRIPdata@jointPeak_threshold == joint_threshold ){ # if the MeRIP object has already reported a version of jointPeaks and trying to report at the same threshold
     cat(paste0("Reporting joint peak at joint threshold "), MeRIPdata@jointPeak_threshold,"\n")
     geneBins <- geneBins(MeRIPdata)
-    peak_id_pairs <- MeRIPdata@jointPeak_id_pairs
+    peak_id_pairs <- MeRIPdata@jointPeak_id_pairs   # use already exist jointpeak ID pairs.
 
     num_peaks <- nrow(peak_id_pairs)
     geneGRList <- MeRIPdata@geneModel
     peakGenes <- as.character(geneBins[peak_id_pairs[,1],"gene"])
 
     if (num_peaks == 0){return(data.frame())
-    }else {
+    }else {  
       start_time <- Sys.time()
       registerDoParallel(cores = threads)
       cat(paste("Hyper-thread registered:",getDoParRegistered(),"\n"))
@@ -273,7 +273,7 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
     data.out <- filter(data.out, !duplicated( paste(data.out@jointPeaks$chr, data.out@jointPeaks$start, data.out@jointPeaks$end,data.out@jointPeaks$strand, sep = ":") ) )
     return( data.out )
     
-  }else if( MeRIPdata@jointPeak_threshold == 0  |  MeRIPdata@jointPeak_threshold != joint_threshold ){
+  }else if( MeRIPdata@jointPeak_threshold == 0  |  MeRIPdata@jointPeak_threshold != joint_threshold ){ # When jointpeak has not been reported before
     cat(paste0("Reporting joint peak at joint threshold "), joint_threshold ,"\n")
     
     ## Get joint peak
@@ -299,7 +299,7 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
     num_peaks <- nrow(peak_id_pairs)
     geneGRList <- MeRIPdata@geneModel
     peakGenes <- as.character(geneBins[peak_id_pairs[,1],"gene"])
-    #geneBins <- .getGeneBins(geneGRList,peakGenes,MeRIPdata@binSize )
+    
 
     if (num_peaks == 0){return(data.frame())
     }else{
@@ -360,7 +360,7 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
 .peakExons <- function(peak,y){
   exonID <- peak$start <= y$end & peak$end >= y$start
   if(sum(exonID) == 1){
-    return(data.frame(start = peak$start, end = peak$end, width = peak$end - peak$start))
+    return(data.frame(start = peak$start, end = peak$end, width = peak$end - peak$start + 1))
   }else if(sum(exonID) > 1){
     peakexon <- y[exonID,]
     peakexon[1,"start"] <- peak$start
@@ -370,45 +370,7 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
 }
 
 
-.getGeneBins <- function(geneGRList,geneNames,binSize,threads = 1){
-  
-  registerDoParallel(cores = threads)
-  geneBins <-foreach(i = 1:length(geneNames), .combine = rbind)%dopar%{
-    geneName = geneNames[i]
-    geneModel =reduce( geneGRList[geneName][[1]] )## merge overlapping exons
-    
-    # DNA location to gene location conversion
-    df.geneModel= as.data.frame(geneModel) ##data frame of gene model
-    dna.range = as.data.frame(range(geneModel) )
-    df.geneModel$end = df.geneModel$end - dna.range$start + 1
-    df.geneModel$start = df.geneModel$start - dna.range$start + 1
-    DNA2RNA = rep(0,dna.range$end - dna.range$start +1)
-    no.exon = dim(df.geneModel)[1]
-    for (j in 1:no.exon){DNA2RNA[df.geneModel$start[j]:df.geneModel$end[j]]=1}
-    exon.length = sum(DNA2RNA)
-    #creat a corresponding map from RNA to DNA
-    RNA2DNA = 1:exon.length
-    pointer = 1
-    for (j in 1:no.exon){
-      RNA2DNA[pointer:(pointer+df.geneModel$width[j]-1) ]= RNA2DNA[pointer:(pointer+df.geneModel$width[j]-1)] + df.geneModel$start[j] -pointer
-      pointer = pointer + df.geneModel$width[j]
-    }
-    RNA2DNA = RNA2DNA + dna.range$start -1 #back to chromosome coordinates
-    #creat center points of continuous window
-    if(exon.length <= binSize){
-      slidingStart= exon.length/2
-      mapping = data.frame(start = RNA2DNA[slidingStart-exon.length/2+1], end = RNA2DNA[slidingStart + exon.length/2]  )
-    }else{
-      slidingStart= round(seq(from = binSize/2, to = (exon.length - binSize/2), length.out = ceiling(exon.length/binSize) ) )
-      mapping = data.frame(start = RNA2DNA[slidingStart - binSize/2 +1], end = RNA2DNA[slidingStart + binSize/2 ]  )
-    }
-    mapping$chr = as.character(dna.range$seqnames)
-    mapping$strand = as.character(dna.range$strand)
-    cbind(data.frame(geneName,slidingStart),mapping)
-  }
-  rm(list=ls(name=foreach:::.foreachGlobals), pos=foreach:::.foreachGlobals)
-  return(geneBins)
-}
+
 
 .getPeakBins <- function(geneGRList,geneName,slidingStarts,binSize){
   
@@ -431,12 +393,14 @@ reportJointPeak <- function(MeRIPdata, joint_threshold = 2,threads = 1){
     pointer = pointer + df.geneModel$width[j]
   }
   RNA2DNA = RNA2DNA + dna.range$start -1 #back to chromosome coordinates
-  #creat center points of continuous window
-  if(exon.length <= binSize){
-    slidingStart= exon.length/2
-    mapping = data.frame(start = RNA2DNA[slidingStarts[1]-exon.length/2+1], end = RNA2DNA[slidingStarts[2] + exon.length/2]  )
-  }else{
-    mapping = data.frame(start = RNA2DNA[slidingStarts[1] - binSize/2 +1], end = RNA2DNA[slidingStarts[2] + binSize/2 ]  )
+  
+  #create center points of continuous window
+  if(exon.length <= binSize | (dna.range$strand == "+" & slidingStarts[2] == ( exon.length - binSize - exon.length %% binSize + 1) ) ){ # for genes that is shorter than bin size || if it is the rightmost bin (buffer bin) to be retrieved (positive strand only)
+    mapping = data.frame(start = RNA2DNA[ slidingStarts[1] ], end = RNA2DNA[exon.length]  )
+  }else if( dna.range$strand == "-" & slidingStarts[2] == 1 ){ # when retrieve the leftmost (buffer) bin on reverse strand
+    mapping = data.frame(start = RNA2DNA[ slidingStarts[1] ], end = RNA2DNA[slidingStarts[2] + binSize + exon.length %% binSize - 1 ]  )
+  }else{ # retrieve regular bins
+    mapping = data.frame(start = RNA2DNA[ slidingStarts[1] ], end = RNA2DNA[slidingStarts[2] + binSize - 1 ] )
   }
   
   mapping$chr = as.character(dna.range$seqnames)
@@ -583,17 +547,17 @@ setMethod("adjustExprLevel", signature("MeRIP.Peak"), function(object, adjustBy 
     geneSum <- geneExpression(object)
     geneSum <- t(apply(geneSum,1,.noZero))
     gene.size <- t( apply(geneSum,1,function(x){x/mean(x)}) )
-    gene.size.factor <- gene.size[jointPeak(object)$name,]
+    gene.size.factor <- gene.size[ as.character( jointPeak(object)$name ) , ]
     ip_norm_geneSum <- object@norm.jointPeak_ip/gene.size.factor
     ip_norm_geneSum <- round(ip_norm_geneSum)
     object@jointPeak_adjExpr <- ip_norm_geneSum
     return(object)
   }else if(adjustBy == "pos"){
     norm.jointPeak_input <-t( t(object@jointPeak_input) / object@sizeFactor$input )
-    norm.jointPeak_input <- t(apply(norm.jointPeak_input,1,.noZero))
-    pos.size <-  t( apply(norm.jointPeak_input,1,function(x){x/mean(x)}) )
+    norm.jointPeak_input <- t( apply( norm.jointPeak_input, 1, .noZero ) )
+    pos.size <-  t( apply(norm.jointPeak_input,1 , function(x){x/mean(x)} ) )
     ip_norm_pos <- object@norm.jointPeak_ip/pos.size
-    ip_norm_pos <- round(ip_norm_pos)
+    ip_norm_pos <- round( ip_norm_pos )
     object@jointPeak_adjExpr <- ip_norm_pos
     return(object)
   }else{

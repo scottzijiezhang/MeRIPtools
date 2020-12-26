@@ -113,10 +113,15 @@ countReads<-function(
 
     #creat center points of continuous window
     if(exon.length <= binSize){
-      slidingStart= exon.length/2
-      #mapping = data.frame(start = RNA2DNA[slidingStart-exon.length/2+1], end = RNA2DNA[slidingStart + exon.length/2]  )
+      slidingStart = 1
     }else{
-      slidingStart= round(seq(from = binSize/2, to = (exon.length - binSize/2), length.out = ceiling(exon.length/binSize) ) )
+      ## use the 3' end terminal bin as a elastic-size bin
+      if(dna.range$strand == "+"){
+        slidingStart = seq(from = 1, to = ( exon.length - binSize - exon.length %% binSize + 1) , length.out = floor(exon.length/binSize) ) 
+      }else{ # make the first bin elastic bin if a gene is on reverse strand
+        slidingStart = c(1, seq(from = binSize + exon.length %% binSize + 1, to = ( exon.length - binSize + 1) , length.out = floor(exon.length/binSize) - 1 )  )
+      }
+      #slidingStart = round(seq(from = binSize/2, to = (exon.length - binSize/2), length.out = ceiling(exon.length/binSize) ) )
       #mapping = data.frame(start = RNA2DNA[slidingStart - binSize/2 +1], end = RNA2DNA[slidingStart + binSize/2 ]  )
     }
 
@@ -130,7 +135,7 @@ countReads<-function(
     ba.input = sapply(bamPath.input,.countReadFromBam,which = range(geneModel),reads.strand = reads.strand,DNA2RNA = DNA2RNA,fragmentLength=fragmentLength,left=dna.range$start,sliding = slidingStart, binSize = binSize, paired = paired)
 
     if(is.vector(ba.IP) ){# if there is only one window for this gene, make it a matrix to avoid bug
-      ba.IP = matrix(ba.IP, nrow = 1)
+      ba.IP = matrix(ba.IP, nrow = 1 )
       ba.input = matrix( ba.input, nrow = 1 )
     }
     ba.counts <- cbind(ba.input,ba.IP)

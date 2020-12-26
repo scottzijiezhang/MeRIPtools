@@ -15,8 +15,10 @@
       no.window = length(sliding)
       windowCounts = vector(length = no.window)
       for(j in 1:no.window){
-        windowCounts[j]= sum( abs(sliding[j] - ba$pos) <= binSize/2 )
-      }
+        windowCounts[j]= sum( ba$pos >= sliding[j] &  ba$pos < (sliding[j] + binSize)  ) 
+      } # count regular bins
+      windowCounts[no.window] = windowCounts[no.window] + sum( ba$pos >=  (sliding[no.window] + binSize) & ba$pos <= max(DNA2RNA) ) #count the extra part of the last bin
+      
 
     }else{ # single-end sequence
       ba = scanBam(bam, param=ScanBamParam( which=which, what =c("pos","strand","qwidth") ) )
@@ -31,8 +33,10 @@
       no.window = length(sliding)
       windowCounts = vector(length = no.window)
       for(j in 1:no.window){
-        windowCounts[j]= sum( abs(sliding[j] - ba$pos) <= binSize/2 )
-      }
+        windowCounts[j]= sum( ba$pos >= sliding[j] &  ba$pos < (sliding[j] + binSize)  ) 
+      } # count regular bins
+      windowCounts[no.window] = windowCounts[no.window] + sum( ba$pos >=  (sliding[no.window] + binSize) & ba$pos <= max(DNA2RNA) ) #count the extra part of the last bin
+      
     }
 
     return(windowCounts)
