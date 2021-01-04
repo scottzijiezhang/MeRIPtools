@@ -195,19 +195,17 @@ countReadsCarRNA<-function(
       if(dna.range$strand == "+"){reads.strand = "-"}else if(dna.range$strand == "-"){reads.strand = "+"}else{reads.strand = "*"}
     }
     
-    #creat center points of continuous window
-    if(geneLength <= binSize){
-      slidingStart= geneLength/2
-      #mapping = data.frame(start = RNA2DNA[slidingStart-geneLength/2+1], end = RNA2DNA[slidingStart + geneLength/2]  )
+    #create start points of continuous window
+    if(exon.length <= binSize){
+      slidingStart = 1
     }else{
-      slidingStart= round(seq(from = binSize/2, to = (geneLength - binSize/2), length.out = ceiling(geneLength/binSize) ) )
-      #mapping = data.frame(start = RNA2DNA[slidingStart - binSize/2 +1], end = RNA2DNA[slidingStart + binSize/2 ]  )
+      ## use the 3' end terminal bin as a elastic-size bin
+      if(dna.range$strand == "+"){
+        slidingStart = seq(from = 1, to = ( exon.length - binSize - exon.length %% binSize + 1) , length.out = floor(exon.length/binSize) ) 
+      }else{ # make the first bin elastic bin if a gene is on reverse strand
+        slidingStart = c(1, seq(from = binSize + exon.length %% binSize + 1, to = ( exon.length - binSize + 1) , length.out = floor(exon.length/binSize) - 1 )  )
+      }
     }
-    
-    #mapping$chr = as.character(dna.range$seqnames)
-    #mapping$strand = as.character(dna.range$strand)
-    #rownames(mapping) = paste(geneName,slidingStart,sep = ",")
-    #geneRNA2DNA= rbind(geneRNA2DNA,mapping[c("chr","start","end","strand")])
     
     #count reads in all samples
     ba.IP = sapply(bamPath.IP,.countReadFromBam,which = range(geneModel),reads.strand = reads.strand,DNA2RNA = DNA2RNA,fragmentLength=fragmentLength,left=dna.range$start,sliding = slidingStart, binSize = binSize, paired = paired)
