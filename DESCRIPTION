@@ -9,6 +9,7 @@ License: MIT License
 Encoding: UTF-8
 LazyData: true
 Depends: GenomicFeatures, Rsamtools, ggplot2, doParallel, foreach,grid,rtracklayer,GenomicAlignments,reshape2,Rcpp,RcppArmadillo, qvalue
+biocViews:
 RoxygenNote: 6.1.1
 LinkingTo: Rcpp, RcppArmadillo
 Imports: Guitar, stringr,vcfR, broom, DESeq2, ggsci
